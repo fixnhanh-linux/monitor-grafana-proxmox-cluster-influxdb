@@ -1,0 +1,17 @@
+# File khoa tam cua Word/Excel
+~$*
+
+# Dashboard sinh ra theo tung bucket khi chay lenh dashboard
+deploy/dashboard-*.json
+!deploy/dashboard-template.json
+
+# Ban nen phat hanh (dua len GitHub Releases, khong commit)
+*.zip
+
+# Linh tinh
+*.bak
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

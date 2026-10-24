@@ -1,0 +1,5 @@
+* text=auto eol=lf
+*.sh text eol=lf
+*.pm text eol=lf
+*.zip binary
+*.docx binary

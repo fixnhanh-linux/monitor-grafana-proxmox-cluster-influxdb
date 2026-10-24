@@ -1,0 +1,3 @@
+# Moi dong 1 IP/hostname node Proxmox, dong bat dau bang # se bi bo qua
+# 10.0.0.11
+# 10.0.0.12
