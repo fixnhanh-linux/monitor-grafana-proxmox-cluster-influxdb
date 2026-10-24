@@ -93,8 +93,8 @@ Quy ước: dùng node đầu tiên `10.0.0.11` (pve1) làm nơi chạy script c
 
 ```bash
 apt install -y git
-git clone https://github.com/fixnhanh-linux/proxmox-nic-monitor.git /root/proxmox-nic-monitor
-ln -sfn /root/proxmox-nic-monitor/deploy /root/monitor-nic-proxmox
+git clone https://github.com/fixnhanh-linux/monitor-grafana-proxmox-cluster-influxdb.git /root/monitor-grafana-proxmox-cluster-influxdb
+ln -sfn /root/monitor-grafana-proxmox-cluster-influxdb/deploy /root/monitor-nic-proxmox
 ```
 
 **Cách B: node không có Internet**: tải `monitor-nic-proxmox.zip` ở mục **Releases** của repo (hoặc tự nén 4 file trong `deploy/`), rồi copy lên pve1 từ máy Windows (PowerShell):

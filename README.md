@@ -1,4 +1,4 @@
-# proxmox-nic-monitor
+# monitor-grafana-proxmox-cluster-influxdb
 
 Giám sát card mạng (NIC) trên cluster Proxmox VE: thu thập đầy đủ thông số như `ip -s link` và `ethtool -S`, trạng thái UP/DOWN và tốc độ link của card 10G/25G, đẩy thẳng vào InfluxDB qua `pvestatd` có sẵn của Proxmox và hiển thị trên Grafana.
 
@@ -34,7 +34,7 @@ pvestatd (10 giây/lần)
 ## Cấu trúc repo
 
 ```
-proxmox-nic-monitor/
+monitor-grafana-proxmox-cluster-influxdb/
 ├── deploy/                          ← bộ cài, copy cả thư mục này lên node
 │   ├── CustomNetworkMetrics.pm      ← module Perl thu thập số liệu
 │   ├── deploy-monitor-nic-proxmox.sh← script install / check / diag / dashboard / uninstall
@@ -52,8 +52,8 @@ Chạy trên node đầu tiên của cluster (root):
 
 ```bash
 apt install -y git ethtool
-git clone https://github.com/fixnhanh-linux/proxmox-nic-monitor.git /root/proxmox-nic-monitor
-cd /root/proxmox-nic-monitor/deploy
+git clone https://github.com/fixnhanh-linux/monitor-grafana-proxmox-cluster-influxdb.git /root/monitor-grafana-proxmox-cluster-influxdb
+cd /root/monitor-grafana-proxmox-cluster-influxdb/deploy
 chmod +x deploy-monitor-nic-proxmox.sh
 
 # 1. Khai báo IP các node, mỗi dòng 1 IP
