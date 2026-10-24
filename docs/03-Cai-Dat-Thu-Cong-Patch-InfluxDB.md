@@ -6,7 +6,7 @@ tags: ["Proxmox", "InfluxDB", "Grafana", "Monitoring", "Network"]
 
 # Hướng Dẫn Tích Hợp Advanced Network Metrics Vào Proxmox (Native InfluxDB)
 
-> **Lưu ý:** Đây là cách làm thủ công để hiểu nguyên lý. Đoạn module bên dưới là bản rút gọn; bản đầy đủ và mới nhất là [`deploy/CustomNetworkMetrics.pm`](../deploy/CustomNetworkMetrics.pm). Khi triển khai thật, nên dùng script theo [Hướng dẫn triển khai](Huong-Dan-Trien-Khai.md). Về timeout, nên sửa trong **Datacenter → Metric Server → Edit** thay vì tự nối dòng vào `/etc/pve/status.cfg`.
+> **Lưu ý:** Đây là cách làm thủ công để hiểu nguyên lý. Đoạn module bên dưới là bản rút gọn; bản đầy đủ và mới nhất là [`deploy/CustomNetworkMetrics.pm`](../deploy/CustomNetworkMetrics.pm). Khi triển khai thật, nên dùng script theo [Hướng dẫn triển khai](01-Huong-Dan-Trien-Khai-Monitor-NIC-Proxmox.md). Về timeout, nên sửa trong **Datacenter → Metric Server → Edit** thay vì tự nối dòng vào `/etc/pve/status.cfg`.
 
 Mặc định, Proxmox tích hợp sẵn khả năng xuất (export) metric hệ thống ra InfluxDB thông qua tiến trình `pvestatd`. Tuy nhiên, các thông số mặc định chỉ dừng lại ở băng thông (TX/RX) mà **thiếu hụt** các chỉ số mạng quan trọng ở mức thấp (Low-level Metrics) như: số gói tin bị rớt ở card vật lý (Hardware Drop), gói tin UDP bị lỗi, và trạng thái cắm cáp của các card mạng 10Gbps/40Gbps.
 
@@ -14,7 +14,7 @@ Bài viết này hướng dẫn cách can thiệp vào plugin InfluxDB gốc c�
 
 ---
 
-## 🎯 Mục Tiêu Thu Thập
+## Mục Tiêu Thu Thập
 
 Chúng ta sẽ bổ sung các chỉ số sau, được nhúng trực tiếp vào các Data Measurement gốc của Proxmox:
 
@@ -34,9 +34,9 @@ Chúng ta sẽ bổ sung các chỉ số sau, được nhúng trực tiếp vào
 
 ---
 
-## 🛠 Hướng Dẫn Cấu Hình Chi Tiết
+## Hướng Dẫn Cấu Hình Chi Tiết
 
-> **⚠️ Cảnh Báo An Toàn:** 
+> **Cảnh Báo An Toàn:** 
 > Hãy luôn sao lưu file cấu hình gốc trước khi tiến hành chỉnh sửa bằng lệnh sau:
 > ```bash
 > cp /usr/share/perl5/PVE/Status/InfluxDB.pm /usr/share/perl5/PVE/Status/InfluxDB.pm.bak
@@ -194,7 +194,7 @@ influxdb: proxmox-cluster-deco
 
 ---
 
-## 🚀 Khởi Động & Kiểm Tra Kết Quả
+## Khởi Động & Kiểm Tra Kết Quả
 
 Áp dụng toàn bộ cài đặt bằng cách khởi động lại service thu thập:
 ```bash

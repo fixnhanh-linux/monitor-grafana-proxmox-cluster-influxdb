@@ -15,15 +15,7 @@ Cả 4 file phải nằm **cùng một thư mục** trên node (script tìm các
 
 ## 2. Cách hoạt động
 
-```
-pvestatd (10 giây/lần)
-  └─ PVE::Status::InfluxDB::update_node_status()
-       └─ PVE::CustomNetworkMetrics::get_metrics()   <- module thêm vào
-            ├─ /sys/class/net/<if>/statistics/*      (giống ip -s link)
-            ├─ ethtool -S <if>  (chỉ card vật lý)    (port.*, veb.*, rx_crc_errors...)
-            └─ /proc/net/snmp, ss                    (udp_loss, corosync_conn)
-  └─ InfluxDB: measurement "nics", tag host + instance (tên card)
-```
+![Luồng thu thập trên mỗi node](images/luong-thu-thap.svg)
 
 Script chỉ chèn một đoạn vào `update_node_status` trong file `/usr/share/perl5/PVE/Status/InfluxDB.pm`. Script không ghi đè cả file, nên dùng được với mọi phiên bản Proxmox.
 
@@ -67,6 +59,8 @@ Script chỉ chèn một đoạn vào `update_node_status` trong file `/usr/shar
 ## 4. Setup từng bước
 
 Quy ước: dùng node đầu tiên `10.0.0.11` (pve1) làm nơi chạy script cho cả cluster. Các node trong cùng cluster đã SSH được sang nhau, nên thường không cần cấu hình SSH thêm. Thay IP và tên card cho đúng hệ thống.
+
+![Quy trình cài đặt](images/quy-trinh-cai-dat.svg)
 
 | Bước | Việc cần làm | Làm ở đâu |
 |---|---|---|
@@ -182,7 +176,7 @@ Hoan thanh: 1 node OK
 ```
 
 - **Kết quả đúng:** mọi dòng `[OK]`; số liệu khớp `ip -s link`.
-- **Nếu có `[LOI]`:** xem [bảng sự cố khi triển khai](Canh-Bao-Va-Xu-Ly-Su-Co.md#3-sự-cố-khi-triển-khai). Nếu lỗi ở bước patch, script không ghi đè `InfluxDB.pm`.
+- **Nếu có `[LOI]`:** xem [bảng sự cố khi triển khai](02-Canh-Bao-Va-Xu-Ly-Su-Co-Card-Mang.md#3-sự-cố-khi-triển-khai). Nếu lỗi ở bước patch, script không ghi đè `InfluxDB.pm`.
 
 ### Bước 6: Tạo dashboard đúng bucket và import (pve1, Grafana)
 
@@ -240,11 +234,15 @@ Không truyền tham số (`./deploy-monitor-nic-proxmox.sh check`) thì script 
 ./deploy-monitor-nic-proxmox.sh diag -f nodes.txt
 ```
 
+![Lệnh diag kiểm tra lần lượt](images/quy-trinh-diag.svg)
+
 Lệnh chạy trên từng node, tự đọc cấu hình InfluxDB (server, port, org, bucket, token) trong Proxmox rồi kiểm tra lần lượt: module/patch → cấu hình Metric Server (cảnh báo timeout quá ngắn) → log `pvestatd` → kết nối InfluxDB → dữ liệu gốc (`cpustat`) và dữ liệu NIC mới trong bucket. Dòng **Ket luan** cuối cùng cho biết lỗi nằm ở đâu và cách xử lý.
 
 ### Bước 9: Cảnh báo (tùy chọn)
 
-Xem [Cảnh báo và xử lý sự cố](Canh-Bao-Va-Xu-Ly-Su-Co.md#1-cảnh-báo-grafana-alerting).
+Xem [Cảnh báo và xử lý sự cố](02-Canh-Bao-Va-Xu-Ly-Su-Co-Card-Mang.md#1-cảnh-báo-grafana-alerting).
+
+![Lệnh install làm gì trên mỗi node](images/logic-install.svg)
 
 **Script làm gì trên mỗi node:** cài module vào `/usr/share/perl5/PVE/`, backup `InfluxDB.pm` thành `.bak` (chỉ lần đầu), patch `InfluxDB.pm` nếu chưa patch (kiểm tra `perl -c`, lỗi thì không ghi đè), restart `pvestatd`, rồi tự kiểm tra.
 

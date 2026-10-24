@@ -1,6 +1,6 @@
 # Cảnh báo, xử lý sự cố và vận hành
 
-Tài liệu bổ sung cho [Hướng dẫn triển khai](Huong-Dan-Trien-Khai.md). Trong các truy vấn mẫu, thay `proxmox-cluster-deco` bằng bucket của cluster bạn.
+Tài liệu bổ sung cho [Hướng dẫn triển khai](01-Huong-Dan-Trien-Khai-Monitor-NIC-Proxmox.md). Trong các truy vấn mẫu, thay `proxmox-cluster-deco` bằng bucket của cluster bạn.
 
 ## 1. Cảnh báo (Grafana Alerting)
 
@@ -72,7 +72,7 @@ from(bucket: "proxmox-cluster-deco")
 | Dữ liệu ngừng sau khi `apt upgrade` | Nâng cấp `pve-manager` đã ghi đè `InfluxDB.pm`, mất patch | Chạy lại `./deploy-monitor-nic-proxmox.sh install -f nodes.txt` |
 | Không có field `ethtool_*` | Thiếu `ethtool`, hoặc card không phải card vật lý | `apt install ethtool` rồi chạy lại `install` |
 | Card 10G không hiện trên panel 10G | Driver không báo link mode và card DOWN từ khi `pvestatd` khởi động | Chạy `ethtool <if>` để xem; card sẽ hiện khi có link lần đầu |
-| `[LOI] InfluxDB.pm sau khi patch bi loi cu phap` | Phiên bản `InfluxDB.pm` có cấu trúc khác | Script không ghi đè nên node vẫn an toàn. Cài thủ công theo [Cai-Dat-Thu-Cong.md](Cai-Dat-Thu-Cong.md) |
+| `[LOI] InfluxDB.pm sau khi patch bi loi cu phap` | Phiên bản `InfluxDB.pm` có cấu trúc khác | Script không ghi đè nên node vẫn an toàn. Cài thủ công theo [Cai-Dat-Thu-Cong.md](03-Cai-Dat-Thu-Cong-Patch-InfluxDB.md) |
 | `khong thay diem chen trong update_node_status` | Hàm `update_node_status` khác cấu trúc mong đợi | Như trên, node không bị thay đổi |
 | `[LOI] Khong copy duoc file len` | Sai IP, node tắt, chưa có SSH key | Kiểm tra `ssh root@<ip> hostname` |
 | `Permission denied` | Chưa copy SSH key, sai `SSH_PASS` | Chạy `ssh-copy-id`, hoặc kiểm tra biến `SSH_PASS` |

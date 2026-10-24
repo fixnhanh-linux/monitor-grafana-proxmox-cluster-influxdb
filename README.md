@@ -1,132 +1,74 @@
-<div align="center">
+# Hướng Dẫn Giám Sát Card Mạng Proxmox Cluster Bằng InfluxDB Và Grafana
 
-# 📡 Proxmox Cluster NIC Monitor
+Thu thập đầy đủ thông số như `ip -s link` và `ethtool -S`, trạng thái UP/DOWN và tốc độ link card 10G/25G trên **mọi node** của cluster Proxmox VE. Dữ liệu đi thẳng vào InfluxDB qua tiến trình `pvestatd` có sẵn của Proxmox và hiển thị trên Grafana. **Không cần cài agent.**
 
-### Giám sát card mạng Proxmox VE bằng InfluxDB & Grafana — không cần agent
-
-Thu thập đầy đủ thông số như `ip -s link` và `ethtool -S`, trạng thái UP/DOWN và tốc độ link card 10G/25G trên **mọi node** của cluster,
-đẩy thẳng vào InfluxDB qua `pvestatd` có sẵn của Proxmox và hiển thị trên Grafana.
-
-![Proxmox VE](https://img.shields.io/badge/Proxmox%20VE-7.x%20%7C%208.x%20%7C%209.x-E57000?logo=proxmox&logoColor=white)
-![InfluxDB](https://img.shields.io/badge/InfluxDB-2.x%20(Flux)-22ADF6?logo=influxdb&logoColor=white)
-![Grafana](https://img.shields.io/badge/Grafana-Dashboard-F46800?logo=grafana&logoColor=white)
-![Perl](https://img.shields.io/badge/Module-Perl-39457E?logo=perl&logoColor=white)
-![Bash](https://img.shields.io/badge/Deploy-Bash%20%2B%20SSH-4EAA25?logo=gnubash&logoColor=white)
-
-[Giới thiệu](#-giới-thiệu) •
-[Kiến trúc](#-kiến-trúc) •
-[Thông số](#-thông-số-thu-thập) •
-[Cài đặt](#-cài-đặt-nhanh) •
-[Dashboard](#-dashboard-grafana) •
-[Vận hành](#-vận-hành) •
-[Tài liệu](#-tài-liệu-chi-tiết)
-
-</div>
+**Mục lục:**
+[Giới thiệu](#1-giới-thiệu) ·
+[Kiến trúc](#2-kiến-trúc) ·
+[Thông số thu thập](#3-thông-số-thu-thập) ·
+[Yêu cầu](#4-yêu-cầu) ·
+[Cài đặt nhanh](#6-cài-đặt-nhanh) ·
+[Lệnh của script](#7-các-lệnh-của-script) ·
+[Dashboard](#8-dashboard-grafana) ·
+[Cảnh báo](#9-cảnh-báo) ·
+[Vận hành](#10-vận-hành) ·
+[Tài liệu chi tiết](#11-tài-liệu-chi-tiết)
 
 ---
 
-## 📖 Giới thiệu
+## 1. Giới thiệu
 
 Metric mặc định mà Proxmox gửi sang InfluxDB chỉ có **băng thông TX/RX**. Khi cluster gặp sự cố mạng như cáp lỗi, SFP bẩn, link chập chờn hay card 25G chạy tụt xuống 10G, dashboard thường **không thấy gì bất thường**.
 
-Dự án này bổ sung các chỉ số mạng ở mức thấp vào ngay luồng metric gốc của Proxmox:
+Bộ công cụ này bổ sung các chỉ số mạng ở mức thấp vào ngay luồng metric gốc của Proxmox:
 
-| Vấn đề thường gặp | Dự án này giúp thấy được |
+| Vấn đề thường gặp | Thấy được qua |
 |---|---|
 | Cáp/DAC hỏng, SFP bẩn | `rx_crc_errors`, `port.rx_crc_errors` tăng theo thời gian |
-| Link chập chờn (flapping) | Timeline UP/DOWN từng card |
+| Link chập chờn (flapping) | Timeline UP/DOWN của từng card |
 | Card 25G chỉ chạy 10G | So sánh `link_speed` với `link_speed_max` |
-| Ring buffer đầy, CPU không kịp | `rx_missed_errors`, `rx_fifo_errors` |
+| Ring buffer đầy, CPU xử lý không kịp | `rx_missed_errors`, `rx_fifo_errors` |
 | Corosync mất ổn định | `udp_loss`, `corosync_conn` |
 
 **Điểm mạnh:**
 
-- ✅ **100% native:** chạy trong `pvestatd` của Proxmox, không cài Telegraf, node_exporter hay vòng lặp bash.
-- ✅ **Triển khai hàng loạt:** một lệnh cài cho cả cluster qua SSH.
-- ✅ **An toàn:** kiểm tra `perl -c` trước khi ghi, có backup `.bak`, chạy lại không bị chèn trùng, gỡ sạch được.
-- ✅ **Tự chẩn đoán:** lệnh `diag` chỉ ra lỗi nằm ở module, cấu hình, kết nối hay InfluxDB.
-- ✅ **Dashboard sẵn:** tự sinh đúng bucket và datasource cho từng cluster.
+- **Chạy native:** nằm trong `pvestatd` của Proxmox, không cài Telegraf, node_exporter hay vòng lặp bash.
+- **Triển khai hàng loạt:** một lệnh cài cho cả cluster qua SSH.
+- **An toàn:** kiểm tra `perl -c` trước khi ghi, có backup `.bak`, chạy lại không bị chèn trùng, gỡ sạch được.
+- **Tự chẩn đoán:** lệnh `diag` chỉ ra lỗi nằm ở module, cấu hình, kết nối hay InfluxDB.
+- **Dashboard sẵn:** tự sinh đúng bucket và datasource cho từng cluster.
 
 ---
 
-## 🏗 Kiến trúc
+## 2. Kiến trúc
 
-### Tổng quan hệ thống
+### 2.1. Tổng quan hệ thống
 
-```mermaid
-flowchart LR
-    subgraph CLUSTER["Proxmox VE Cluster"]
-        direction TB
-        N1["pve1<br/>pvestatd + module"]
-        N2["pve2<br/>pvestatd + module"]
-        N3["pveN<br/>pvestatd + module"]
-    end
+Admin chạy script trên một node để cài module lên toàn cluster qua SSH. Sau đó mỗi node tự gửi số liệu sang InfluxDB 10 giây/lần, Grafana đọc bằng Flux để vẽ dashboard và gửi cảnh báo.
 
-    ADMIN(["Admin<br/>deploy-monitor-nic-proxmox.sh"])
-    INFLUX[("InfluxDB 2.x<br/>bucket của cluster")]
-    GRAFANA["Grafana<br/>Dashboard + Alerting"]
-    USER(["Người vận hành"])
+<p align="center"><img src="docs/images/kien-truc-tong-quan.svg" alt="Kiến trúc tổng quan" width="100%"></p>
 
-    ADMIN -- "SSH: install / check / diag" --> N1
-    ADMIN -- SSH --> N2
-    ADMIN -- SSH --> N3
-    N1 -- "HTTP API, 10 giây/lần" --> INFLUX
-    N2 --> INFLUX
-    N3 --> INFLUX
-    INFLUX -- "Flux query" --> GRAFANA
-    GRAFANA --> USER
-```
+### 2.2. Luồng thu thập trên mỗi node
 
-### Luồng thu thập trên mỗi node
+Mỗi chu kỳ, `pvestatd` gọi `update_node_status()` trong plugin InfluxDB của Proxmox. Đoạn patch gọi thêm module `CustomNetworkMetrics`, module đọc 4 nguồn số liệu rồi gắn vào measurement `nics` (theo từng card) và `system` (theo node).
 
-```mermaid
-flowchart TD
-    A["pvestatd<br/>chu kỳ 10 giây"] --> B["PVE::Status::InfluxDB<br/>update_node_status()"]
-    B -->|"đoạn patch gọi"| C["PVE::CustomNetworkMetrics<br/>get_metrics()"]
+<p align="center"><img src="docs/images/luong-thu-thap.svg" alt="Luồng thu thập trên mỗi node" width="100%"></p>
 
-    C --> D["/sys/class/net/IF/statistics/*<br/>bộ đếm kernel, giống ip -s link"]
-    C --> E["ethtool -S IF<br/>counter driver, chỉ card vật lý"]
-    C --> F["speed, operstate<br/>ethtool IF: tốc độ tối đa"]
-    C --> G["/proc/net/snmp và ss<br/>udp_loss, corosync_conn"]
+Script chỉ **chèn một đoạn nhỏ** vào hàm `update_node_status` trong `/usr/share/perl5/PVE/Status/InfluxDB.pm`, không ghi đè cả file, nên dùng được với nhiều phiên bản Proxmox. Module bắt mọi lỗi bên trong: nếu đọc số liệu lỗi thì `pvestatd` vẫn chạy bình thường.
 
-    D --> H["measurement nics<br/>tag: host, instance"]
-    E --> H
-    F --> H
-    G --> I["measurement system<br/>tag: host"]
+### 2.3. Lệnh `install` làm gì trên mỗi node
 
-    H --> J[("InfluxDB")]
-    I --> J
-```
-
-Script chỉ **chèn một đoạn nhỏ** vào hàm `update_node_status` trong `/usr/share/perl5/PVE/Status/InfluxDB.pm`, không ghi đè cả file, nên dùng được với nhiều phiên bản Proxmox. Module bắt mọi lỗi bên trong, nên nếu đọc số liệu lỗi thì `pvestatd` vẫn chạy bình thường.
-
-### Script làm gì khi `install`
-
-```mermaid
-flowchart TD
-    S(["install trên 1 node"]) --> A["Copy CustomNetworkMetrics.pm<br/>kiểm tra perl -c"]
-    A --> B["Cài vào /usr/share/perl5/PVE/"]
-    B --> C{"InfluxDB.pm<br/>đã patch?"}
-    C -->|"Rồi"| F
-    C -->|"Chưa"| D["Backup InfluxDB.pm.bak<br/>chỉ lần đầu"]
-    D --> E{"Bản patch<br/>qua perl -c?"}
-    E -->|"Lỗi"| X["Không ghi đè<br/>node giữ nguyên, báo LOI"]
-    E -->|"OK"| P["Ghi InfluxDB.pm đã patch"]
-    P --> F["Restart pvestatd"]
-    F --> G["Tự check: module, patch,<br/>ethtool, pvestatd, số liệu card"]
-    G --> K(["OK"])
-```
+<p align="center"><img src="docs/images/logic-install.svg" alt="Lệnh install làm gì trên mỗi node" width="70%"></p>
 
 ---
 
-## 📊 Thông số thu thập
+## 3. Thông số thu thập
 
-### Card mạng — measurement `nics`
+### 3.1. Card mạng: measurement `nics`
 
 Tag: `host` (tên node), `instance` (tên card, ví dụ `enp24s0f2np2`).
 
-<details open>
-<summary><b>Bộ đếm kernel (giống <code>ip -s link</code>)</b></summary>
+**Bộ đếm kernel (giống `ip -s link`)**
 
 | `ip -s link` | Field |
 |---|---|
@@ -136,12 +78,7 @@ Tag: `host` (tên node), `instance` (tên card, ví dụ `enp24s0f2np2`).
 | TX errors / dropped / carrier / collsns | `tx_errors`, `tx_dropped`, `tx_carrier_errors`, `collisions` |
 | Chi tiết lỗi | `rx_crc_errors`, `rx_length_errors`, `rx_over_errors`, `rx_fifo_errors`, `rx_frame_errors`, `rx_nohandler`, `tx_aborted_errors`, `tx_fifo_errors`, `tx_heartbeat_errors`, `tx_window_errors` |
 
-</details>
-
-<details open>
-<summary><b>Counter driver (<code>ethtool -S</code>, chỉ card vật lý)</b></summary>
-
-Mỗi tên có thêm tiền tố `ethtool_`, ký tự đặc biệt đổi thành `_`.
+**Counter driver (`ethtool -S`, chỉ card vật lý)**: mỗi tên có thêm tiền tố `ethtool_`, ký tự đặc biệt đổi thành `_`.
 
 | `ethtool -S` | Field |
 |---|---|
@@ -153,10 +90,7 @@ Mỗi tên có thêm tiền tố `ethtool_`, ký tự đặc biệt đổi thàn
 - Chỉ lấy counter có tên chứa *err, drop, discard, crc, miss, timeout, length, fifo, over, collision, carrier…*
 - Bỏ counter theo từng queue (`rx_queue_0_*`, `tx-0.*`) để InfluxDB không bị phình.
 
-</details>
-
-<details open>
-<summary><b>Trạng thái và tốc độ link</b></summary>
+**Trạng thái và tốc độ link**
 
 | Field | Ý nghĩa |
 |---|---|
@@ -165,11 +99,9 @@ Mỗi tên có thêm tiền tố `ethtool_`, ký tự đặc biệt đổi thàn
 | `link_speed_max` | Tốc độ tối đa card hỗ trợ (Mb/s). Card 10G luôn là `10000`, kể cả khi DOWN |
 | `hardware_drop` | Số gói rớt (RX dropped) |
 
-</details>
-
 Card ảo (`tap*`, `veth*`, `fwbr*`, `fwpr*`, `fwln*`) chỉ lấy trạng thái UP/DOWN, không lấy bộ đếm lỗi.
 
-### Hệ thống — measurement `system`
+### 3.2. Hệ thống: measurement `system`
 
 | Field | Ý nghĩa |
 |---|---|
@@ -179,7 +111,7 @@ Card ảo (`tap*`, `veth*`, `fwbr*`, `fwpr*`, `fwln*`) chỉ lấy trạng thái
 
 ---
 
-## ✅ Yêu cầu
+## 4. Yêu cầu
 
 | Thành phần | Yêu cầu |
 |---|---|
@@ -191,61 +123,55 @@ Card ảo (`tap*`, `veth*`, `fwbr*`, `fwpr*`, `fwln*`) chỉ lấy trạng thái
 
 ---
 
-## 📁 Cấu trúc repo
+## 5. Cấu trúc repo
 
 ```
 monitor-grafana-proxmox-cluster-influxdb/
-├── deploy/                           # Bộ cài: copy nguyên thư mục này lên node
-│   ├── CustomNetworkMetrics.pm       # Module Perl thu thập số liệu
-│   ├── deploy-monitor-nic-proxmox.sh # install / check / diag / dashboard / uninstall
-│   ├── nodes.txt                     # Danh sách IP node (điền IP của bạn)
-│   └── dashboard-template.json       # Dashboard Grafana mẫu
+├── README.md                                     Tổng quan (file này)
+├── deploy/                                       Bộ cài: copy nguyên thư mục này lên node
+│   ├── CustomNetworkMetrics.pm                   Module Perl thu thập số liệu
+│   ├── deploy-monitor-nic-proxmox.sh             install / check / diag / dashboard / uninstall
+│   ├── nodes.txt                                 Danh sách IP node (điền IP của bạn)
+│   └── dashboard-template.json                   Dashboard Grafana mẫu
 └── docs/
-    ├── Huong-Dan-Trien-Khai.md       # Hướng dẫn từng bước — bắt đầu ở đây
-    ├── Canh-Bao-Va-Xu-Ly-Su-Co.md    # Alert Grafana, đọc lỗi, xử lý sự cố, vận hành
-    └── Cai-Dat-Thu-Cong.md           # Patch thủ công, giải thích nguyên lý
+    ├── 01-Huong-Dan-Trien-Khai-Monitor-NIC-Proxmox.md   Hướng dẫn từng bước, bắt đầu ở đây
+    ├── 02-Canh-Bao-Va-Xu-Ly-Su-Co-Card-Mang.md          Alert Grafana, đọc lỗi, xử lý sự cố, vận hành
+    ├── 03-Cai-Dat-Thu-Cong-Patch-InfluxDB.md            Patch thủ công, giải thích nguyên lý
+    └── images/                                          Sơ đồ SVG
 ```
 
 > Cả 4 file trong `deploy/` phải nằm **cùng một thư mục** trên node, vì script tìm các file còn lại ngay cạnh nó.
 
 ---
 
-## 🚀 Cài đặt nhanh
+## 6. Cài đặt nhanh
 
-### Quy trình
+### 6.1. Quy trình
 
-```mermaid
-flowchart LR
-    A["1. Kiểm tra<br/>Metric Server"] --> B["2. Clone repo<br/>lên pve1"]
-    B --> C["3. Điền<br/>nodes.txt"]
-    C --> D["4. Cài thử<br/>1 node"]
-    D --> E["5. Tạo + import<br/>dashboard"]
-    E --> F["6. Cài<br/>cả cluster"]
-    F --> G["7. Check<br/>+ Alert"]
-```
+<p align="center"><img src="docs/images/quy-trinh-cai-dat.svg" alt="Quy trình cài đặt" width="100%"></p>
 
-### Các lệnh
+### 6.2. Các lệnh
 
 Chạy trên node đầu tiên của cluster bằng `root`:
 
 ```bash
-# 1. Lấy bộ cài
+# Bước 2: lấy bộ cài
 apt install -y git ethtool
 git clone https://github.com/fixnhanh-linux/monitor-grafana-proxmox-cluster-influxdb.git /root/nic-monitor
 cd /root/nic-monitor/deploy
 chmod +x deploy-monitor-nic-proxmox.sh
 
-# 2. Khai báo IP các node, mỗi dòng 1 IP
+# Bước 3: khai báo IP các node, mỗi dòng 1 IP
 pvecm status | sed -n '/Membership information/,$p'
 nano nodes.txt
 
-# 3. Cài thử 1 node, output phải toàn [OK]
+# Bước 4: cài thử 1 node, output phải toàn [OK]
 ./deploy-monitor-nic-proxmox.sh install 10.0.0.11
 
-# 4. Tạo dashboard đúng bucket của cluster (đọc từ /etc/pve/status.cfg)
+# Bước 5: tạo dashboard đúng bucket của cluster (đọc từ /etc/pve/status.cfg)
 ./deploy-monitor-nic-proxmox.sh dashboard
 
-# 5. Cài cho cả cluster rồi kiểm tra
+# Bước 6-7: cài cho cả cluster rồi kiểm tra
 ./deploy-monitor-nic-proxmox.sh install -f nodes.txt
 ./deploy-monitor-nic-proxmox.sh check   -f nodes.txt
 ```
@@ -264,9 +190,9 @@ Kết quả mẫu khi cài thành công:
 Hoan thanh: 1 node OK
 ```
 
-> **Node không có Internet?** Tải `monitor-nic-proxmox.zip` ở mục **Releases**, `scp` lên node rồi giải nén. Xem [Hướng dẫn triển khai, bước 2](docs/Huong-Dan-Trien-Khai.md).
+> **Node không có Internet?** Tải `monitor-nic-proxmox.zip` ở mục **Releases**, `scp` lên node rồi giải nén. Xem [hướng dẫn triển khai, bước 2](docs/01-Huong-Dan-Trien-Khai-Monitor-NIC-Proxmox.md#bước-2-lấy-bộ-cài-lên-pve1).
 
-### Import dashboard
+### 6.3. Import dashboard
 
 Lệnh `dashboard` tạo file `dashboard-<bucket>.json`. Có hai cách đưa vào Grafana:
 
@@ -277,12 +203,12 @@ export GRAFANA_TOKEN='glsa_xxx'
 export GRAFANA_DS='ten-datasource-influxdb'   # tùy chọn
 ./deploy-monitor-nic-proxmox.sh dashboard
 
-# Cách 2: import tay — copy file về máy rồi Dashboards → New → Import → Upload
+# Cách 2: import tay - copy file về máy rồi Dashboards → New → Import → Upload
 ```
 
 ---
 
-## 🧰 Các lệnh của script
+## 7. Các lệnh của script
 
 | Lệnh | Tác dụng |
 |---|---|
@@ -302,21 +228,15 @@ Không truyền node thì script dùng `nodes.txt` nằm cạnh script.
 | `GRAFANA_TOKEN` | (trống) | Token service account Grafana |
 | `GRAFANA_DS` | (trống) | Tên datasource InfluxDB gắn vào dashboard |
 
-### Lệnh `diag` kiểm tra những gì
+### Lệnh `diag` kiểm tra lần lượt
 
-```mermaid
-flowchart LR
-    A["Module +<br/>patch"] --> B["Cấu hình<br/>Metric Server"]
-    B --> C["Log<br/>pvestatd"]
-    C --> D["Kết nối<br/>InfluxDB"]
-    D --> E["Dữ liệu gốc<br/>cpustat"]
-    E --> F["Dữ liệu NIC<br/>trong bucket"]
-    F --> G(["Kết luận:<br/>lỗi ở đâu"])
-```
+<p align="center"><img src="docs/images/quy-trinh-diag.svg" alt="Lệnh diag kiểm tra lần lượt" width="100%"></p>
+
+Dòng **Ket luan** cuối cùng của lệnh cho biết lỗi nằm ở bước nào và cách xử lý.
 
 ---
 
-## 📈 Dashboard Grafana
+## 8. Dashboard Grafana
 
 Dashboard giữ các panel tổng quan của Proxmox (CPU, RAM, storage, VM) và thêm nhóm panel NIC. Các panel NIC **chỉ hiện card vật lý**, không hiện `vmbr*`, `bond*`, `br-*`, `docker0`.
 
@@ -331,15 +251,15 @@ Dashboard giữ các panel tổng quan của Proxmox (CPU, RAM, storage, VM) và
 | NIC Driver Counters - ethtool -S | Bảng + cột | Counter driver khác 0, và counter đang tăng |
 | Corosync Connections, UDP Packet Loss | Stat | Sức khỏe mạng cluster |
 
-**Màu tốc độ link:** 🟢 UP từ 10G · 🟠 UP nhưng dưới 10G (kiểm tra cáp/SFP/port switch) · 🔴 DOWN
+**Màu tốc độ link:** xanh lá = UP từ 10G · cam = UP nhưng dưới 10G (kiểm tra cáp/SFP/port switch) · đỏ = DOWN.
 
-> 💡 **Cách đọc số:** số tích lũy (ví dụ `rx_errors = 67`) có thể là lỗi cũ từ lần boot trước. Hãy xem các biểu đồ **"new per interval"** để biết lỗi **còn đang phát sinh** hay không.
+> **Cách đọc số:** số tích lũy (ví dụ `rx_errors = 67`) có thể là lỗi cũ từ lần boot trước. Hãy xem các biểu đồ **"new per interval"** để biết lỗi **còn đang phát sinh** hay không.
 
 ---
 
-## 🔔 Cảnh báo
+## 9. Cảnh báo
 
-Nên tạo hai Alert rule trong Grafana. Truy vấn Flux đầy đủ có trong [Cảnh báo và xử lý sự cố](docs/Canh-Bao-Va-Xu-Ly-Su-Co.md#1-cảnh-báo-grafana-alerting).
+Nên tạo hai Alert rule trong Grafana. Truy vấn Flux đầy đủ có trong [tài liệu cảnh báo và xử lý sự cố](docs/02-Canh-Bao-Va-Xu-Ly-Su-Co-Card-Mang.md#1-cảnh-báo-grafana-alerting).
 
 | Cảnh báo | Điều kiện |
 |---|---|
@@ -348,9 +268,9 @@ Nên tạo hai Alert rule trong Grafana. Truy vấn Flux đầy đủ có trong 
 
 ---
 
-## 🛠 Vận hành
+## 10. Vận hành
 
-> ⚠️ **Quan trọng:** mỗi lần `apt upgrade` có nâng cấp `pve-manager`, file `InfluxDB.pm` sẽ bị ghi đè và **mất patch**. Dấu hiệu: panel NIC không còn dữ liệu mới, trong khi CPU/RAM vẫn bình thường.
+> **Quan trọng:** mỗi lần `apt upgrade` có nâng cấp `pve-manager`, file `InfluxDB.pm` sẽ bị ghi đè và **mất patch**. Dấu hiệu: panel NIC không còn dữ liệu mới, trong khi CPU/RAM vẫn bình thường.
 
 ```bash
 ./deploy-monitor-nic-proxmox.sh check   -f nodes.txt   # node nào báo [THIEU] là đã mất patch
@@ -364,7 +284,7 @@ Nên tạo hai Alert rule trong Grafana. Truy vấn Flux đầy đủ có trong 
 | InfluxDB báo timeout | Tăng timeout ở **Datacenter → Metric Server → Edit** |
 | Gỡ bỏ | `./deploy-monitor-nic-proxmox.sh uninstall -f nodes.txt` |
 
-### Sự cố thường gặp
+**Sự cố thường gặp**
 
 | Hiện tượng | Cách xử lý |
 |---|---|
@@ -373,24 +293,16 @@ Nên tạo hai Alert rule trong Grafana. Truy vấn Flux đầy đủ có trong 
 | Không có field `ethtool_*` | `apt install ethtool` rồi chạy lại `install` |
 | Dashboard trống | Chọn đúng Datasource/bucket, rồi chạy `diag -f nodes.txt` |
 
-Bảng đầy đủ: [Cảnh báo và xử lý sự cố](docs/Canh-Bao-Va-Xu-Ly-Su-Co.md).
+Bảng đầy đủ: [tài liệu cảnh báo và xử lý sự cố](docs/02-Canh-Bao-Va-Xu-Ly-Su-Co-Card-Mang.md#3-sự-cố-khi-triển-khai).
 
 ---
 
-## 📚 Tài liệu chi tiết
+## 11. Tài liệu chi tiết
 
-| Tài liệu | Nội dung |
-|---|---|
-| [Hướng dẫn triển khai](docs/Huong-Dan-Trien-Khai.md) | Từng bước từ kiểm tra Metric Server tới cài toàn cluster, kết quả đúng và cách sửa ở mỗi bước |
-| [Cảnh báo và xử lý sự cố](docs/Canh-Bao-Va-Xu-Ly-Su-Co.md) | Alert Grafana, ý nghĩa từng loại lỗi card mạng, quy trình xử lý lỗi CRC, vận hành, checklist |
-| [Cài đặt thủ công](docs/Cai-Dat-Thu-Cong.md) | Patch tay `InfluxDB.pm`, giải thích nguyên lý hoạt động |
+| # | Tài liệu | Nội dung |
+|---|---|---|
+| 01 | [Hướng dẫn triển khai Monitor NIC Proxmox](docs/01-Huong-Dan-Trien-Khai-Monitor-NIC-Proxmox.md) | Từng bước từ kiểm tra Metric Server tới cài toàn cluster, kết quả đúng và cách sửa ở mỗi bước |
+| 02 | [Cảnh báo và xử lý sự cố card mạng](docs/02-Canh-Bao-Va-Xu-Ly-Su-Co-Card-Mang.md) | Alert Grafana, ý nghĩa từng loại lỗi card mạng, quy trình xử lý lỗi CRC, vận hành, checklist |
+| 03 | [Cài đặt thủ công: patch InfluxDB.pm](docs/03-Cai-Dat-Thu-Cong-Patch-InfluxDB.md) | Patch tay `InfluxDB.pm`, giải thích nguyên lý hoạt động |
 
----
-
-<div align="center">
-
-**Không commit token Grafana/InfluxDB hay IP thật vào repo.**
-
-Nếu thấy hữu ích, hãy cho repo một ⭐
-
-</div>
+> Không commit token Grafana/InfluxDB hay IP thật vào repo.
