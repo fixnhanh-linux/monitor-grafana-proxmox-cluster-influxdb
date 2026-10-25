@@ -206,7 +206,7 @@ scp root@10.0.0.11:/root/monitor-nic-proxmox/dashboard-demo.json .
 
 Mở dashboard, chọn **Datasource** (datasource InfluxDB Flux trỏ tới bucket của cluster), **Server** = pve1, thời gian **Last 15 minutes**.
 
-- **Kết quả đúng:** panel "Physical NIC Link Status (10G+)" hiện card 10G/25G; bảng "NIC Counters – ip -s link" khớp `ip -s link`.
+- **Kết quả đúng:** panel "NIC Link Status (10G+)" hiện card 10G/25G; các bảng "NIC Link & Traffic / RX Errors / TX Errors (Since Boot)" khớp `ip -s link`.
 - **Nếu trống:** kiểm tra đã chọn đúng Datasource, đợi thêm 1 phút, chạy `./deploy-monitor-nic-proxmox.sh check <ip-pve1>`.
 
 ### Bước 7: Cài toàn cluster (pve1)
@@ -275,16 +275,23 @@ Import `dashboard-<bucket>.json` do lệnh `dashboard` tạo (Bước 6). Mọi 
 
 | Panel | Kiểu | Nội dung |
 |---|---|---|
-| Physical NIC Link Status (10G+) | Stat | Card 10G trở lên: tên kèm tốc độ tối đa (`[25G]`), giá trị là tốc độ hiện tại |
-| NIC Link Status Timeline | State timeline | UP/DOWN và tốc độ của từng card theo thời gian, thấy rõ lúc link flap hoặc đổi tốc độ |
-| NIC Error Timeline (new errors per interval) | State timeline | Mỗi card một dòng: xanh `OK` = không có lỗi mới, đỏ = số lỗi mới trong khoảng đó |
-| NIC Counters - ip -s link (cumulative since boot) | Bảng | Đủ cột như `ip -s link`, xếp theo thứ tự: Link, Speed, Max Speed, RX Errors, RX CRC Errors… cuối cùng là bytes/packets. Ô lỗi khác 0 tô đỏ |
-| NIC RX Errors - CRC / Length / Missed / Overrun | Cột | Lỗi RX mới mỗi khoảng thời gian |
-| NIC Drops & TX Errors - Dropped / Carrier / Collisions | Cột | Gói rớt và lỗi TX mới mỗi khoảng thời gian |
-| NIC Driver Counters - ethtool -S (non-zero, cumulative) | Bảng | Counter `ethtool -S` khác 0 |
-| NIC Driver Counters - ethtool -S (new per interval) | Cột | Chỉ vẽ counter `ethtool` có tăng |
+| NIC Link Status (10G+) | State timeline | Mỗi card vật lý 10G+ một thanh, tên kèm tốc độ tối đa (`[25G]`). Gộp trạng thái link và lỗi: `✔ UP 10G` (xanh) · `⚠ UP 10G · 1–99 Errors` (vàng) · `▲ UP 10G · 100–999 Errors` (cam) · `⛔ UP 10G · 1K+ Errors` / `⛔ DOWN` (đỏ) |
+| NIC Link Speed | Time series | Tốc độ link theo thời gian, vạch nét đứt ở 10G. Tụt về 0 = DOWN, bước xuống = đổi tốc độ. Cột `Min` = 0 nghĩa là đã có lúc rớt link |
+| Corosync Connections, UDP Packet Loss | Stat | Sức khỏe mạng cluster |
+| Hardware RX Drops (Cumulative) | Time series | Gói RX bị rớt (tích lũy) theo từng interface |
+| NIC Link & Traffic (Since Boot) | Bảng | Link, Speed, Max Speed, RX/TX Bytes, RX/TX Packets, Multicast. Link/Speed tô màu theo trạng thái |
+| NIC RX Errors (Since Boot) | Bảng | Errors, CRC, Length, Missed, Dropped, Overrun, FIFO, Frame, No Handler |
+| NIC TX Errors (Since Boot) | Bảng | Errors, Dropped, Carrier, Aborted, FIFO, Heartbeat, Window, Collisions |
+| NIC RX Errors (Per Interval) | Cột chồng | Lỗi RX **mới** mỗi khoảng thời gian, tên dạng `ens3f0np0 · CRC`, bảng chú thích xếp theo Total giảm dần |
+| NIC TX Errors & Drops (Per Interval) | Cột chồng | Lỗi TX và gói rớt **mới** mỗi khoảng thời gian |
+| Ethtool Counters (Since Boot) | Bảng | Counter `ethtool -S` khác 0 (bỏ tiền tố `ethtool_`), cột Count dạng thanh đo màu |
+| Ethtool Counters (Per Interval) | Cột | Mức tăng của các counter `ethtool` khác 0; đường phẳng ở 0 = không tăng |
 
-Màu tốc độ link: xanh = UP từ 10G, cam = UP nhưng dưới 10G (kiểm tra cáp/SFP/port switch), đỏ = DOWN. Card 25G chạy ở 10G hiện `UP 10G` màu xanh, tên có `[25G]` để phân biệt.
+**Mức cảnh báo (bảng lỗi và counter):** 🟩 0 = OK · 🟨 1–99 = chú ý · 🟧 100–999 = cảnh báo · 🟥 1.000–9.999 = nghiêm trọng · đỏ đậm ≥ 10.000.
+
+**Màu tốc độ link:** xanh lá = UP từ 10G · cam = UP nhưng dưới 10G (kiểm tra cáp/SFP/port switch) · đỏ = DOWN. Card 25G chạy ở 10G hiện `UP 10G`, tên có `[25G]` để phân biệt.
+
+Mỗi panel có nút ⓘ giải thích bằng tiếng Anh ý nghĩa và nguyên nhân thường gặp của từng loại lỗi.
 
 **Cách đọc số:**
 

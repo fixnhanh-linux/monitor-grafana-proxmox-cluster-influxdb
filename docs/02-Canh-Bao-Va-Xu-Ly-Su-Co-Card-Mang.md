@@ -49,7 +49,7 @@ from(bucket: "proxmox-cluster-deco")
 | `rx_crc_errors`, `rx_length_errors`, `port.rx_crc_errors` tăng | Lỗi lớp vật lý: cáp/DAC hỏng, SFP bẩn hoặc lỗi, port switch lỗi, không khớp tốc độ/FEC | Vệ sinh hoặc thay SFP, thay cáp/DAC, đổi port switch, xem counter lỗi phía switch |
 | `rx_dropped` tăng nhưng không có errors | Kernel bỏ gói ở tầng phần mềm: VLAN chưa cấu hình, protocol không xử lý (LLDP…), gói không có đích | Thường không nghiêm trọng. Nếu tăng nhanh thì xem thêm `rx_missed_errors` / `rx_fifo_errors` |
 | `rx_missed_errors`, `rx_fifo_errors`, `rx_over_errors` tăng | Ring buffer đầy, CPU xử lý ngắt không kịp | Xem `ethtool -g <if>`, tăng ring: `ethtool -G <if> rx 4096`. Kiểm tra CPU/IRQ |
-| `tx_dropped`, `port.tx_dropped_link_down` tăng | Link chập chờn (flapping), hàng đợi gửi đầy | Xem panel UP/DOWN và log switch, kiểm tra cáp/SFP |
+| `tx_dropped`, `port.tx_dropped_link_down` tăng | Link chập chờn (flapping), hàng đợi gửi đầy | Xem panel NIC Link Status / NIC Link Speed và log switch, kiểm tra cáp/SFP |
 | `tx_carrier_errors` tăng | Mất tín hiệu khi đang gửi | Kiểm tra cáp, SFP, port switch |
 | `collisions` khác 0 | Link đang half-duplex | Kiểm tra duplex, ép full-duplex ở cả hai đầu |
 | Card 10G hiện `UP 1G` (màu cam) | SFP 1G, cáp không đạt chuẩn, port switch cấu hình 1G, auto-negotiation sai | Xem `ethtool <if>`, kiểm tra loại module và cấu hình port switch |
@@ -116,7 +116,7 @@ Mỗi card vật lý có khoảng 25 field kernel cộng 10–20 field ethtool, 
 
 | Tần suất | Việc cần làm |
 |---|---|
-| Hằng ngày | Xem panel "Physical NIC Link Status (10G+)" và các biểu đồ "tăng mỗi chu kỳ" |
+| Hằng ngày | Xem panel "NIC Link Status (10G+)" và các biểu đồ "Per Interval" |
 | Hằng tuần | Xem bảng counter tích lũy, đối chiếu card có lỗi tăng dần |
 | Sau mỗi lần nâng cấp Proxmox | `./deploy-monitor-nic-proxmox.sh check -f nodes.txt`, cài lại nếu mất patch |
 | Sau khi thay cáp/SFP | Theo dõi biểu đồ lỗi ít nhất 24 giờ để xác nhận đã hết |
