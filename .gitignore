@@ -3,7 +3,7 @@
 
 # Dashboard sinh ra theo tung bucket khi chay lenh dashboard
 deploy/dashboard-*.json
-!deploy/dashboard-template.json
+dashboard-grafana/dashboard-*.json
 
 # Ban nen phat hanh (dua len GitHub Releases, khong commit)
 *.zip

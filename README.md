@@ -127,20 +127,25 @@ Card ảo (`tap*`, `veth*`, `fwbr*`, `fwpr*`, `fwln*`) chỉ lấy trạng thái
 
 ```
 monitor-grafana-proxmox-cluster-influxdb/
+├── install.sh                                    Cài cả cluster bằng 1 lệnh (bắt đầu ở đây)
 ├── README.md                                     Tổng quan (file này)
-├── deploy/                                       Bộ cài: copy nguyên thư mục này lên node
+├── deploy/                                       Bộ cài lên node Proxmox
 │   ├── CustomNetworkMetrics.pm                   Module Perl thu thập số liệu
 │   ├── deploy-monitor-nic-proxmox.sh             install / check / diag / dashboard / uninstall
-│   ├── nodes.txt                                 Danh sách IP node (điền IP của bạn)
-│   └── dashboard-template.json                   Dashboard Grafana mẫu
+│   └── nodes.txt                                 Danh sách IP node (install.sh tự điền nếu để trống)
+├── dashboard-grafana/                            Dashboard Grafana
+│   ├── proxmox-cluster-dashboard.json            Dashboard mẫu (file duy nhất)
+│   ├── import-dashboard.sh                       Tạo + import dashboard đúng bucket/datasource
+│   ├── export-dashboard.sh                       Lấy dashboard từ Grafana về repo sau khi sửa giao diện
+│   └── Huong-Dan-Import-Dashboard-Grafana.md     Hướng dẫn import / export dashboard
 └── docs/
-    ├── 01-Huong-Dan-Trien-Khai-Monitor-NIC-Proxmox.md   Hướng dẫn từng bước, bắt đầu ở đây
+    ├── 01-Huong-Dan-Trien-Khai-Monitor-NIC-Proxmox.md   Hướng dẫn từng bước
     ├── 02-Canh-Bao-Va-Xu-Ly-Su-Co-Card-Mang.md          Alert Grafana, đọc lỗi, xử lý sự cố, vận hành
     ├── 03-Cai-Dat-Thu-Cong-Patch-InfluxDB.md            Patch thủ công, giải thích nguyên lý
     └── images/                                          Sơ đồ SVG
 ```
 
-> Cả 4 file trong `deploy/` phải nằm **cùng một thư mục** trên node, vì script tìm các file còn lại ngay cạnh nó.
+> Luôn `git clone` **cả repo** lên node: script trong `deploy/` dùng dashboard ở `dashboard-grafana/`.
 
 ---
 
@@ -150,30 +155,55 @@ monitor-grafana-proxmox-cluster-influxdb/
 
 <p align="center"><img src="docs/images/quy-trinh-cai-dat.svg" alt="Quy trình cài đặt" width="100%"></p>
 
-### 6.2. Các lệnh
+### 6.2. Cài bằng 1 lệnh (khuyên dùng)
 
 Chạy trên node đầu tiên của cluster bằng `root`:
 
 ```bash
-# Bước 2: lấy bộ cài
-apt install -y git ethtool
+apt install -y git
 git clone https://github.com/fixnhanh-linux/monitor-grafana-proxmox-cluster-influxdb.git /root/nic-monitor
-cd /root/nic-monitor/deploy
-chmod +x deploy-monitor-nic-proxmox.sh
 
-# Bước 3: khai báo IP các node, mỗi dòng 1 IP
+# (tùy chọn) import dashboard luôn vào Grafana
+export GRAFANA_URL=https://<IP-Grafana>:3000
+export GRAFANA_TOKEN='glsa_xxx'        # Administration → Service accounts → role Editor
+
+bash /root/nic-monitor/install.sh
+```
+
+`install.sh` tự làm 5 bước:
+
+| Bước | Việc | Ghi chú |
+|---|---|---|
+| 1 | Kiểm tra root, Proxmox, Metric Server InfluxDB; cài `ethtool`, `python3`, `curl` nếu thiếu | Sửa luôn file bị CRLF khi copy qua Windows |
+| 2 | Lấy IP các node đang online (`pvesh get /cluster/status`), ghi vào `deploy/nodes.txt` | Đã có IP trong `nodes.txt` thì dùng danh sách đó |
+| 3 | Cài module lên từng node | Giống `deploy-monitor-nic-proxmox.sh install -f nodes.txt` |
+| 4 | Kiểm tra từng node | Giống lệnh `check` |
+| 5 | Tạo dashboard đúng bucket trong `/etc/pve/status.cfg`, import nếu có `GRAFANA_URL` + `GRAFANA_TOKEN` | Không có token thì chỉ tạo file JSON |
+
+| Tùy chọn | Tác dụng |
+|---|---|
+| `-y` | Không hỏi xác nhận |
+| `-n "10.0.0.11 10.0.0.12"` | Chỉ cài các node này |
+| `--no-dashboard` | Bỏ qua bước dashboard (dùng khi cài lại sau `apt upgrade`) |
+
+### 6.3. Cài từng bước (thủ công)
+
+```bash
+cd /root/nic-monitor/deploy
+
+# Khai báo IP các node, mỗi dòng 1 IP
 pvecm status | sed -n '/Membership information/,$p'
 nano nodes.txt
 
-# Bước 4: cài thử 1 node, output phải toàn [OK]
-./deploy-monitor-nic-proxmox.sh install 10.0.0.11
+# Cài thử 1 node, output phải toàn [OK]
+bash deploy-monitor-nic-proxmox.sh install 10.0.0.11
 
-# Bước 5: tạo dashboard đúng bucket của cluster (đọc từ /etc/pve/status.cfg)
-./deploy-monitor-nic-proxmox.sh dashboard
+# Tạo dashboard đúng bucket của cluster (đọc từ /etc/pve/status.cfg)
+bash deploy-monitor-nic-proxmox.sh dashboard
 
-# Bước 6-7: cài cho cả cluster rồi kiểm tra
-./deploy-monitor-nic-proxmox.sh install -f nodes.txt
-./deploy-monitor-nic-proxmox.sh check   -f nodes.txt
+# Cài cho cả cluster rồi kiểm tra
+bash deploy-monitor-nic-proxmox.sh install -f nodes.txt
+bash deploy-monitor-nic-proxmox.sh check   -f nodes.txt
 ```
 
 Kết quả mẫu khi cài thành công:
@@ -192,19 +222,19 @@ Hoan thanh: 1 node OK
 
 > **Node không có Internet?** Tải `monitor-nic-proxmox.zip` ở mục **Releases**, `scp` lên node rồi giải nén. Xem [hướng dẫn triển khai, bước 2](docs/01-Huong-Dan-Trien-Khai-Monitor-NIC-Proxmox.md#bước-2-lấy-bộ-cài-lên-pve1).
 
-### 6.3. Import dashboard
-
-Lệnh `dashboard` tạo file `dashboard-<bucket>.json`. Có hai cách đưa vào Grafana:
+### 6.4. Import dashboard
 
 ```bash
-# Cách 1: script import luôn (token: Administration → Service accounts → role Editor)
-export GRAFANA_URL=https://<IP-Grafana>:3000
-export GRAFANA_TOKEN='glsa_xxx'
-export GRAFANA_DS='ten-datasource-influxdb'   # tùy chọn
-./deploy-monitor-nic-proxmox.sh dashboard
+cd /root/nic-monitor/dashboard-grafana
 
-# Cách 2: import tay - copy file về máy rồi Dashboards → New → Import → Upload
+# Hỏi URL, token, datasource rồi import (bỏ trống URL = chỉ tạo file JSON)
+bash import-dashboard.sh -b <ten-bucket>
+
+# Hoặc truyền sẵn, không hỏi
+bash import-dashboard.sh -u https://<IP-Grafana>:3000 -t 'glsa_xxx' -d 'ten-datasource' -b <ten-bucket> -f Proxmox -y
 ```
+
+Import tay: Grafana → **Dashboards → New → Import → Upload** file `dashboard-grafana/proxmox-cluster-dashboard.json`. Chi tiết: [Hướng dẫn import dashboard](dashboard-grafana/Huong-Dan-Import-Dashboard-Grafana.md).
 
 ---
 
@@ -215,10 +245,18 @@ export GRAFANA_DS='ten-datasource-influxdb'   # tùy chọn
 | `install [-f nodes.txt \| ip...]` | Cài module, patch `InfluxDB.pm` (có backup), restart `pvestatd`, tự kiểm tra |
 | `check [-f nodes.txt \| ip...]` | Kiểm tra module, patch, ethtool, pvestatd và in số liệu từng card |
 | `diag [-f nodes.txt \| ip...]` | Chẩn đoán vì sao Grafana không có số liệu |
-| `dashboard [bucket]` | Tạo `dashboard-<bucket>.json`; có `GRAFANA_URL` + `GRAFANA_TOKEN` thì import luôn |
+| `dashboard [bucket]` | Gọi `dashboard-grafana/import-dashboard.sh`: tạo `dashboard-<bucket>.json`, có `GRAFANA_URL` + `GRAFANA_TOKEN` thì import luôn |
 | `uninstall [-f nodes.txt \| ip...]` | Khôi phục `InfluxDB.pm` gốc, xóa module, restart `pvestatd` |
 
 Không truyền node thì script dùng `nodes.txt` nằm cạnh script.
+
+Các script khác:
+
+| Script | Tác dụng |
+|---|---|
+| `install.sh` | Cài cả cluster bằng 1 lệnh (mục 6.2) |
+| `dashboard-grafana/import-dashboard.sh` | Tạo dashboard đúng bucket/datasource, import qua API, tạo thư mục Grafana nếu cần |
+| `dashboard-grafana/export-dashboard.sh` | Lấy dashboard từ Grafana về, làm sạch (bỏ UID/datasource/bucket riêng), ghi đè `proxmox-cluster-dashboard.json` |
 
 | Biến môi trường | Mặc định | Ý nghĩa |
 |---|---|---|
@@ -227,6 +265,7 @@ Không truyền node thì script dùng `nodes.txt` nằm cạnh script.
 | `GRAFANA_URL` | (trống) | URL Grafana để import dashboard |
 | `GRAFANA_TOKEN` | (trống) | Token service account Grafana |
 | `GRAFANA_DS` | (trống) | Tên datasource InfluxDB gắn vào dashboard |
+| `GRAFANA_FOLDER` | (trống) | Thư mục Grafana lưu dashboard (chưa có thì tự tạo) |
 
 ### Lệnh `diag` kiểm tra lần lượt
 
