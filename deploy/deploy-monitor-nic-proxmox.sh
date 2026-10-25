@@ -9,7 +9,7 @@
 #   ./deploy-monitor-nic-proxmox.sh uninstall -f nodes.txt
 #   ./deploy-monitor-nic-proxmox.sh check                  (khong truyen gi = dung nodes.txt canh script)
 #   ./deploy-monitor-nic-proxmox.sh diag      -f nodes.txt (chan doan: du lieu da vao InfluxDB chua, loi o dau)
-#   ./deploy-monitor-nic-proxmox.sh dashboard [bucket]     (tao dashboard Grafana dung bucket cua cluster)
+#   ./deploy-monitor-nic-proxmox.sh dashboard [bucket]     (tao + import dashboard Grafana, goi dashboard-grafana/import-dashboard.sh)
 #
 # Mac dinh dang nhap bang SSH key. Neu can mat khau: export SSH_PASS='...' (phai co sshpass).
 # Doi user SSH: export SSH_USER=root (mac dinh root).
@@ -320,96 +320,23 @@ usage() {
     exit 2
 }
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-DASH_TEMPLATE="$SCRIPT_DIR/dashboard-template.json"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"   # -P: theo symlink ve thu muc that
+# Dashboard nam o thu muc dashboard-grafana/ cua repo (ban zip: co the nam canh script)
+IMPORT_SH="$SCRIPT_DIR/../dashboard-grafana/import-dashboard.sh"
+[ -f "$IMPORT_SH" ] || IMPORT_SH="$SCRIPT_DIR/import-dashboard.sh"
 
-# Tao dashboard Grafana tu dashboard-template.json, doi bucket + datasource cho dung cluster nay
+# Tao (va import neu co GRAFANA_URL + GRAFANA_TOKEN) dashboard dung bucket cua cluster nay
 make_dashboard() {
     local bucket="${1:-}"
-
+    [ -f "$IMPORT_SH" ] || { echo "Khong thay dashboard-grafana/import-dashboard.sh"; return 1; }
     if [ -z "$bucket" ]; then
-        # Lay bucket cua metric server influxdb dau tien trong status.cfg
         bucket=$(influx_cfg bucket)
-        if [ -z "$bucket" ]; then
-            echo "Khong doc duoc bucket trong /etc/pve/status.cfg. Truyen bucket: $0 dashboard <ten-bucket>"
-            return 1
-        fi
-        echo "Bucket lay tu /etc/pve/status.cfg: $bucket"
+        [ -n "$bucket" ] && echo "Bucket lay tu $STATUS_CFG: $bucket"
     fi
-    [ -f "$DASH_TEMPLATE" ] || { echo "Khong thay $DASH_TEMPLATE"; return 1; }
-
-    local out="$SCRIPT_DIR/dashboard-$bucket.json"
-    BUCKET="$bucket" GRAFANA_DS="${GRAFANA_DS:-}" perl -MJSON -e '
-        local $/;
-        open(my $fh, "<", $ARGV[0]) or die "khong mo duoc $ARGV[0]\n";
-        my $d = decode_json(<$fh>);
-        close($fh);
-        my ($b, $ds) = ($ENV{BUCKET}, $ENV{GRAFANA_DS});
-        # Escape ky tu dac biet cho regex cua Grafana (JavaScript)
-        my $re = sub { (my $s = shift) =~ s{([.*+?^\$\{\}()|\[\]\\/])}{\\$1}g; return "/^$s\$/" };
-
-        # Moi datasource influxdb deu tro ve bien ${dsProxmox}
-        my $walk;
-        $walk = sub {
-            my ($o) = @_;
-            if (ref($o) eq "HASH") {
-                my $x = $o->{datasource};
-                if (ref($x) eq "HASH" && ($x->{type} // "") eq "influxdb") {
-                    $x->{uid} = "\${dsProxmox}";
-                }
-                $walk->($_) foreach values %$o;
-            } elsif (ref($o) eq "ARRAY") {
-                $walk->($_) foreach @$o;
-            }
-        };
-        $walk->($d);
-
-        foreach my $v (@{ $d->{templating}{list} }) {
-            if ($v->{name} eq "dsProxmox") {
-                # Co GRAFANA_DS thi chon dung datasource do, khong thi cho chon trong danh sach
-                $v->{regex} = $ds ne "" ? $re->($ds) : "";
-                $v->{current} = $ds ne "" ? { text => $ds, value => $ds } : {};
-            } elsif ($v->{name} eq "Bucket") {
-                $v->{regex} = $re->($b);
-                $v->{current} = { text => $b, value => $b };
-            } elsif ($v->{name} eq "server") {
-                $v->{current} = { text => ["All"], value => ["\$__all"] };
-                $v->{options} = [];
-            }
-        }
-
-        (my $slug = lc($b)) =~ s/[^a-z0-9-]+/-/g;
-        delete $d->{id};
-        $d->{uid} = substr("pve-nic-$slug", 0, 40);
-        $d->{title} = "Proxmox Cluster $b";
-
-        open(my $out, ">", $ARGV[1]) or die "khong ghi duoc $ARGV[1]\n";
-        print $out JSON->new->utf8->canonical->pretty->encode($d);
-        close($out);
-    ' "$DASH_TEMPLATE" "$out" || return 1
-
-    echo "[OK] Da tao $out"
-    echo "     Title: Proxmox Cluster $bucket"
-
-    if [ -n "${GRAFANA_URL:-}" ] && [ -n "${GRAFANA_TOKEN:-}" ]; then
-        local payload resp
-        payload=$(mktemp)
-        perl -MJSON -e 'local $/; open(my $f, "<", $ARGV[0]) or die; my $d = decode_json(<$f>);
-                        print encode_json({ dashboard => $d, overwrite => JSON::true })' "$out" > "$payload"
-        # -k: chap nhan chung chi tu ky cua Grafana HTTPS noi bo
-        resp=$(curl -sS -k -m 30 -X POST "${GRAFANA_URL%/}/api/dashboards/db" \
-            -H "Authorization: Bearer $GRAFANA_TOKEN" -H "Content-Type: application/json" \
-            --data-binary "@$payload")
-        rm -f "$payload"
-        if echo "$resp" | grep -q '"status":"success"'; then
-            echo "[OK] Da import vao Grafana: ${GRAFANA_URL%/}$(echo "$resp" | sed -n 's/.*"url":"\([^"]*\)".*/\1/p')"
-        else
-            echo "[LOI] Import Grafana that bai: $resp"
-            return 1
-        fi
+    if [ -n "$bucket" ]; then
+        bash "$IMPORT_SH" -b "$bucket"
     else
-        echo "     Import tay: Grafana -> Dashboards -> New -> Import -> Upload file tren."
-        echo "     (Hoac dat GRAFANA_URL va GRAFANA_TOKEN de script import luon)"
+        bash "$IMPORT_SH"
     fi
 }
 
