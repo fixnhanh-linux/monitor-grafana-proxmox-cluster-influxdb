@@ -2,16 +2,21 @@
 
 Thu thập đầy đủ các thông số như lệnh `ip -s link` và `ethtool -S` trên từng node Proxmox. Dữ liệu được đẩy vào InfluxDB qua `pvestatd`, rồi hiển thị trên dashboard Grafana **Proxmox Cluster**.
 
-## 1. Các file trong thư mục `deploy/`
+## 1. Các file của bộ cài
 
 | File | Vai trò |
 |---|---|
-| `CustomNetworkMetrics.pm` | Module Perl thu thập số liệu, được cài vào `/usr/share/perl5/PVE/` trên node |
-| `deploy-monitor-nic-proxmox.sh` | Script cài, kiểm tra, chẩn đoán và gỡ trên nhiều node qua SSH |
-| `nodes.txt` | Danh sách IP các node, mỗi dòng 1 IP |
-| `dashboard-template.json` | Dashboard Grafana mẫu, lệnh `dashboard` dùng để tạo dashboard đúng bucket |
+| `install.sh` | **Cài cả cluster bằng 1 lệnh**: tự lấy IP node, cài, kiểm tra, tạo/import dashboard |
+| `deploy/CustomNetworkMetrics.pm` | Module Perl thu thập số liệu, được cài vào `/usr/share/perl5/PVE/` trên node |
+| `deploy/deploy-monitor-nic-proxmox.sh` | Script cài, kiểm tra, chẩn đoán và gỡ trên nhiều node qua SSH |
+| `deploy/nodes.txt` | Danh sách IP các node, mỗi dòng 1 IP (`install.sh` tự điền nếu để trống) |
+| `dashboard-grafana/proxmox-cluster-dashboard.json` | Dashboard Grafana mẫu (file duy nhất) |
+| `dashboard-grafana/import-dashboard.sh` | Tạo dashboard đúng bucket/datasource và import qua API Grafana |
+| `dashboard-grafana/export-dashboard.sh` | Lấy dashboard đang chạy trên Grafana, làm sạch, lưu lại vào repo |
 
-Cả 4 file phải nằm **cùng một thư mục** trên node (script tìm các file còn lại cạnh nó).
+Nên `git clone` **cả repo** lên node: script trong `deploy/` dùng file dashboard ở `dashboard-grafana/`.
+
+> **Cách nhanh nhất:** sau Bước 1 và Bước 2, chạy `bash /root/monitor-grafana-proxmox-cluster-influxdb/install.sh` là xong Bước 3 tới Bước 8. Các bước dưới đây là cách làm từng bước để hiểu và xử lý khi có lỗi.
 
 ## 2. Cách hoạt động
 
@@ -91,7 +96,7 @@ git clone https://github.com/fixnhanh-linux/monitor-grafana-proxmox-cluster-infl
 ln -sfn /root/monitor-grafana-proxmox-cluster-influxdb/deploy /root/monitor-nic-proxmox
 ```
 
-**Cách B: node không có Internet**: tải `monitor-nic-proxmox.zip` ở mục **Releases** của repo (hoặc tự nén 4 file trong `deploy/`), rồi copy lên pve1 từ máy Windows (PowerShell):
+**Cách B: node không có Internet**: tải `monitor-nic-proxmox.zip` ở mục **Releases** của repo (hoặc tự nén 3 file trong `deploy/` cùng `dashboard-grafana/import-dashboard.sh` và `dashboard-grafana/proxmox-cluster-dashboard.json` vào chung một thư mục), rồi copy lên pve1 từ máy Windows (PowerShell):
 
 ```powershell
 scp monitor-nic-proxmox.zip root@10.0.0.11:/root/
@@ -117,7 +122,7 @@ ls -l
 command -v ethtool || apt install -y ethtool
 ```
 
-- **Kết quả đúng:** `ls -l` có 4 file (gồm `dashboard-template.json`), `deploy-monitor-nic-proxmox.sh` có quyền `-rwxr-xr-x`; lệnh cuối in `/usr/sbin/ethtool`.
+- **Kết quả đúng:** `ls -l` có `CustomNetworkMetrics.pm`, `deploy-monitor-nic-proxmox.sh` (quyền `-rwxr-xr-x`), `nodes.txt`; lệnh cuối in `/usr/sbin/ethtool`.
 - **Nếu lỗi:** `unzip` báo `End-of-central-directory signature not found` là file hỏng khi copy, copy lại. Node không có Internet để `apt install unzip` thì copy 4 file lẻ bằng WinSCP vào `/root/monitor-nic-proxmox/`. Báo `$'\r': command not found` thì chạy `sed -i 's/\r$//' *.sh *.pm`.
 
 ### Bước 4: Khai báo node và kiểm tra SSH (pve1)
@@ -187,7 +192,7 @@ cd /root/monitor-nic-proxmox
 ./deploy-monitor-nic-proxmox.sh dashboard
 ```
 
-Kết quả: file `dashboard-<bucket>.json` (ví dụ `dashboard-demo.json`), title `Proxmox Cluster <bucket>`, uid riêng nên không ghi đè dashboard của cluster khác. Mọi panel dùng biến datasource, không gắn cứng datasource của Grafana cũ.
+Lệnh này gọi `dashboard-grafana/import-dashboard.sh`. Kết quả: file `dashboard-grafana/dashboard-<bucket>.json` (ví dụ `dashboard-demo.json`), title `Proxmox Cluster <bucket>`, uid riêng nên không ghi đè dashboard của cluster khác. Mọi panel dùng biến datasource, không gắn cứng datasource của Grafana cũ. Chạy trên terminal, script sẽ hỏi URL và token Grafana; bỏ trống thì chỉ tạo file.
 
 **Cách 1: script import luôn** (cần token Grafana: Administration → Service accounts → Add → role Editor → Add token):
 
@@ -201,7 +206,7 @@ export GRAFANA_DS='ten-datasource-influxdb'   # tuy chon: ten datasource Flux tr
 **Cách 2: import tay:** copy file về Windows rồi Dashboards → New → Import → Upload:
 
 ```powershell
-scp root@10.0.0.11:/root/monitor-nic-proxmox/dashboard-demo.json .
+scp root@10.0.0.11:/root/monitor-grafana-proxmox-cluster-influxdb/dashboard-grafana/dashboard-demo.json .
 ```
 
 Mở dashboard, chọn **Datasource** (datasource InfluxDB Flux trỏ tới bucket của cluster), **Server** = pve1, thời gian **Last 15 minutes**.
