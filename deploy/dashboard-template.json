@@ -38,13 +38,13 @@
       "id": 18,
       "panels": [],
       "repeat": "server",
-      "title": "Summary $server",
+      "title": "Summary — $server",
       "type": "row"
     },
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "tShT4yr4z"
+        "uid": "${dsProxmox}"
       },
       "fieldConfig": {
         "defaults": {
@@ -59,7 +59,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": 0
               },
               {
                 "color": "#EAB839",
@@ -100,12 +101,12 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.0.0",
+      "pluginVersion": "13.2.0",
       "targets": [
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "tShT4yr4z"
+            "uid": "${dsProxmox}"
           },
           "query": "from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\n  |> filter(fn: (r) =>\n    r._measurement == \"cpustat\" and\n    r._field == \"cpu\"\n  )\n  |> filter(fn: (r) => r[\"host\"] == \"${server}\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean)",
           "refId": "A"
@@ -129,7 +130,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": 0
               },
               {
                 "color": "red",
@@ -165,7 +167,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.0.0",
+      "pluginVersion": "13.2.0",
       "targets": [
         {
           "datasource": {
@@ -184,7 +186,6 @@
         "type": "influxdb",
         "uid": "${dsProxmox}"
       },
-      "description": "",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -195,7 +196,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": 0
               },
               {
                 "color": "red",
@@ -232,7 +234,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.0.0",
+      "pluginVersion": "13.2.0",
       "targets": [
         {
           "datasource": {
@@ -264,7 +266,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": 0
               },
               {
                 "color": "yellow",
@@ -308,7 +311,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.0.0",
+      "pluginVersion": "13.2.0",
       "targets": [
         {
           "datasource": {
@@ -319,7 +322,7 @@
           "refId": "A"
         }
       ],
-      "title": "Swap Usage (%)",
+      "title": "Swap Usage",
       "type": "stat"
     },
     {
@@ -340,7 +343,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": 0
               },
               {
                 "color": "#EAB839",
@@ -381,7 +385,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.0.0",
+      "pluginVersion": "13.2.0",
       "targets": [
         {
           "datasource": {
@@ -413,7 +417,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": 0
               },
               {
                 "color": "red",
@@ -457,7 +462,7 @@
         "text": {},
         "valueMode": "color"
       },
-      "pluginVersion": "12.0.0",
+      "pluginVersion": "13.2.0",
       "targets": [
         {
           "datasource": {
@@ -476,7 +481,6 @@
         "type": "influxdb",
         "uid": "${dsProxmox}"
       },
-      "description": "",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -488,7 +492,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": 0
               },
               {
                 "color": "red",
@@ -524,7 +529,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.0.0",
+      "pluginVersion": "13.2.0",
       "targets": [
         {
           "datasource": {
@@ -535,7 +540,7 @@
           "refId": "A"
         }
       ],
-      "title": "Load Avg (1m)",
+      "title": "Load Average (1m)",
       "type": "stat"
     },
     {
@@ -556,7 +561,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": 0
               },
               {
                 "color": "#EAB839",
@@ -597,7 +603,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.0.0",
+      "pluginVersion": "13.2.0",
       "targets": [
         {
           "datasource": {
@@ -608,7 +614,7 @@
           "refId": "A"
         }
       ],
-      "title": "Memory in Use",
+      "title": "Memory Used",
       "type": "stat"
     },
     {
@@ -616,7 +622,6 @@
         "type": "influxdb",
         "uid": "${dsProxmox}"
       },
-      "description": "",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -627,7 +632,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": 0
               },
               {
                 "color": "red",
@@ -664,7 +670,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.0.0",
+      "pluginVersion": "13.2.0",
       "targets": [
         {
           "datasource": {
@@ -681,7 +687,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "tShT4yr4z"
+        "uid": "${dsProxmox}"
       },
       "fieldConfig": {
         "defaults": {
@@ -693,7 +699,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "dark-red"
+                "color": "dark-red",
+                "value": 0
               },
               {
                 "color": "dark-green",
@@ -705,7 +712,7 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 5,
+        "h": 6,
         "w": 4,
         "x": 0,
         "y": 7
@@ -728,12 +735,12 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.0.0",
+      "pluginVersion": "13.2.0",
       "targets": [
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "tShT4yr4z"
+            "uid": "${dsProxmox}"
           },
           "query": "from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"system\")\n  |> filter(fn: (r) => r[\"_field\"] == \"corosync_conn\")\n  |> filter(fn: (r) => r[\"host\"] == \"${server}\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> yield(name: \"last\")",
           "refId": "A"
@@ -745,7 +752,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "tShT4yr4z"
+        "uid": "${dsProxmox}"
       },
       "fieldConfig": {
         "defaults": {
@@ -757,7 +764,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "dark-green"
+                "color": "dark-green",
+                "value": 0
               },
               {
                 "color": "dark-red",
@@ -769,7 +777,7 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 5,
+        "h": 6,
         "w": 4,
         "x": 4,
         "y": 7
@@ -792,139 +800,674 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.0.0",
+      "pluginVersion": "13.2.0",
       "targets": [
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "tShT4yr4z"
+            "uid": "${dsProxmox}"
           },
           "query": "from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"system\")\n  |> filter(fn: (r) => r[\"_field\"] == \"udp_loss\")\n  |> filter(fn: (r) => r[\"host\"] == \"${server}\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> yield(name: \"last\")",
           "refId": "A"
         }
       ],
-      "title": "UDP Packet Loss (InErrors)",
+      "title": "UDP Packet Loss",
       "type": "stat"
     },
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "tShT4yr4z"
+        "uid": "${dsProxmox}"
       },
+      "description": "One row per physical NIC (≥10G). [xxG] = max speed of the card.\n✔ green \"UP 10G\" = link up, no errors\n⚠ yellow \"UP · 1–99 Errors\" = link up but new RX/TX errors in that interval\n▲ orange \"UP · 100–999 Errors\" / UP below 10G\n⛔ red \"UP · 1K+ Errors\" or \"DOWN\" = link down / severe errors\nErrors counted: CRC, Length, Missed, Overrun, FIFO, Frame, Carrier, Aborted, Heartbeat, Window, Collisions. See \"NIC RX/TX Errors (Per Interval)\" for details.",
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "fixedColor": "#808080",
+            "mode": "fixed"
           },
-          "displayName": "${__field.labels.card}",
+          "custom": {
+            "axisPlacement": "auto",
+            "fillOpacity": 85,
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineWidth": 1,
+            "spanNulls": false
+          },
+          "decimals": 1,
+          "displayName": "${__field.labels.nic}",
           "mappings": [
             {
-              "type": "value",
               "options": {
-                "0": {
-                  "text": "DOWN",
-                  "color": "red",
-                  "index": 0
+                "from": -1,
+                "result": {
+                  "color": "#C4162A",
+                  "index": 0,
+                  "text": "⛔ DOWN"
                 },
-                "100": {
-                  "text": "UP 100M",
-                  "index": 1
+                "to": 0.5
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 0.5,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 1,
+                  "text": "✔ UP"
                 },
-                "1000": {
-                  "text": "UP 1G",
-                  "index": 2
+                "to": 1.5
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 99.95,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 2,
+                  "text": "✔ UP 100M"
                 },
-                "2500": {
-                  "text": "UP 2.5G",
-                  "index": 3
+                "to": 100.05
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 100.05,
+                "result": {
+                  "color": "#FADE2A",
+                  "index": 3,
+                  "text": "⚠ UP 100M · 1–99 Errors"
                 },
-                "5000": {
-                  "text": "UP 5G",
-                  "index": 4
+                "to": 100.15
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 100.15,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 4,
+                  "text": "▲ UP 100M · 100–999 Errors"
                 },
-                "10000": {
-                  "text": "UP 10G",
-                  "index": 5
+                "to": 100.25
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 100.25,
+                "result": {
+                  "color": "#F2495C",
+                  "index": 5,
+                  "text": "⛔ UP 100M · 1K+ Errors"
                 },
-                "25000": {
-                  "text": "UP 25G",
-                  "index": 6
+                "to": 100.35
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 999.95,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 6,
+                  "text": "✔ UP 1G"
                 },
-                "40000": {
-                  "text": "UP 40G",
-                  "index": 7
+                "to": 1000.05
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 1000.05,
+                "result": {
+                  "color": "#FADE2A",
+                  "index": 7,
+                  "text": "⚠ UP 1G · 1–99 Errors"
                 },
-                "50000": {
-                  "text": "UP 50G",
-                  "index": 8
+                "to": 1000.15
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 1000.15,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 8,
+                  "text": "▲ UP 1G · 100–999 Errors"
                 },
-                "100000": {
-                  "text": "UP 100G",
-                  "index": 9
-                }
-              }
+                "to": 1000.25
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 1000.25,
+                "result": {
+                  "color": "#F2495C",
+                  "index": 9,
+                  "text": "⛔ UP 1G · 1K+ Errors"
+                },
+                "to": 1000.35
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 2499.95,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 10,
+                  "text": "✔ UP 2.5G"
+                },
+                "to": 2500.05
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 2500.05,
+                "result": {
+                  "color": "#FADE2A",
+                  "index": 11,
+                  "text": "⚠ UP 2.5G · 1–99 Errors"
+                },
+                "to": 2500.15
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 2500.15,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 12,
+                  "text": "▲ UP 2.5G · 100–999 Errors"
+                },
+                "to": 2500.25
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 2500.25,
+                "result": {
+                  "color": "#F2495C",
+                  "index": 13,
+                  "text": "⛔ UP 2.5G · 1K+ Errors"
+                },
+                "to": 2500.35
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 4999.95,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 14,
+                  "text": "✔ UP 5G"
+                },
+                "to": 5000.05
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 5000.05,
+                "result": {
+                  "color": "#FADE2A",
+                  "index": 15,
+                  "text": "⚠ UP 5G · 1–99 Errors"
+                },
+                "to": 5000.15
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 5000.15,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 16,
+                  "text": "▲ UP 5G · 100–999 Errors"
+                },
+                "to": 5000.25
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 5000.25,
+                "result": {
+                  "color": "#F2495C",
+                  "index": 17,
+                  "text": "⛔ UP 5G · 1K+ Errors"
+                },
+                "to": 5000.35
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 9999.95,
+                "result": {
+                  "color": "#56A64B",
+                  "index": 18,
+                  "text": "✔ UP 10G"
+                },
+                "to": 10000.05
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 10000.05,
+                "result": {
+                  "color": "#FADE2A",
+                  "index": 19,
+                  "text": "⚠ UP 10G · 1–99 Errors"
+                },
+                "to": 10000.15
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 10000.15,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 20,
+                  "text": "▲ UP 10G · 100–999 Errors"
+                },
+                "to": 10000.25
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 10000.25,
+                "result": {
+                  "color": "#F2495C",
+                  "index": 21,
+                  "text": "⛔ UP 10G · 1K+ Errors"
+                },
+                "to": 10000.35
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 24999.95,
+                "result": {
+                  "color": "#56A64B",
+                  "index": 22,
+                  "text": "✔ UP 25G"
+                },
+                "to": 25000.05
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 25000.05,
+                "result": {
+                  "color": "#FADE2A",
+                  "index": 23,
+                  "text": "⚠ UP 25G · 1–99 Errors"
+                },
+                "to": 25000.15
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 25000.15,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 24,
+                  "text": "▲ UP 25G · 100–999 Errors"
+                },
+                "to": 25000.25
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 25000.25,
+                "result": {
+                  "color": "#F2495C",
+                  "index": 25,
+                  "text": "⛔ UP 25G · 1K+ Errors"
+                },
+                "to": 25000.35
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 39999.95,
+                "result": {
+                  "color": "#56A64B",
+                  "index": 26,
+                  "text": "✔ UP 40G"
+                },
+                "to": 40000.05
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 40000.05,
+                "result": {
+                  "color": "#FADE2A",
+                  "index": 27,
+                  "text": "⚠ UP 40G · 1–99 Errors"
+                },
+                "to": 40000.15
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 40000.15,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 28,
+                  "text": "▲ UP 40G · 100–999 Errors"
+                },
+                "to": 40000.25
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 40000.25,
+                "result": {
+                  "color": "#F2495C",
+                  "index": 29,
+                  "text": "⛔ UP 40G · 1K+ Errors"
+                },
+                "to": 40000.35
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 49999.95,
+                "result": {
+                  "color": "#56A64B",
+                  "index": 30,
+                  "text": "✔ UP 50G"
+                },
+                "to": 50000.05
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 50000.05,
+                "result": {
+                  "color": "#FADE2A",
+                  "index": 31,
+                  "text": "⚠ UP 50G · 1–99 Errors"
+                },
+                "to": 50000.15
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 50000.15,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 32,
+                  "text": "▲ UP 50G · 100–999 Errors"
+                },
+                "to": 50000.25
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 50000.25,
+                "result": {
+                  "color": "#F2495C",
+                  "index": 33,
+                  "text": "⛔ UP 50G · 1K+ Errors"
+                },
+                "to": 50000.35
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 99999.95,
+                "result": {
+                  "color": "#56A64B",
+                  "index": 34,
+                  "text": "✔ UP 100G"
+                },
+                "to": 100000.05
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 100000.05,
+                "result": {
+                  "color": "#FADE2A",
+                  "index": 35,
+                  "text": "⚠ UP 100G · 1–99 Errors"
+                },
+                "to": 100000.15
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 100000.15,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 36,
+                  "text": "▲ UP 100G · 100–999 Errors"
+                },
+                "to": 100000.25
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 100000.25,
+                "result": {
+                  "color": "#F2495C",
+                  "index": 37,
+                  "text": "⛔ UP 100G · 1K+ Errors"
+                },
+                "to": 100000.35
+              },
+              "type": "range"
             }
           ],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "red"
+                "color": "#C4162A",
+                "value": 0
               },
               {
-                "color": "orange",
-                "value": 1
+                "color": "#FF9830",
+                "value": 0.5
               },
               {
-                "color": "green",
+                "color": "#56A64B",
                 "value": 10000
               }
             ]
           },
-          "noValue": "No link_speed data yet (run deploy-monitor-nic-proxmox.sh install)"
+          "unit": "none"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 5,
+        "h": 6,
         "w": 16,
         "x": 8,
         "y": 7
       },
-      "id": 9994,
+      "id": 10001,
+      "interval": "1m",
       "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "percentChangeColorMode": "standard",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
+        "alignValue": "center",
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
         },
-        "showPercentChange": false,
-        "textMode": "name_and_value",
-        "wideLayout": true
+        "mergeValues": true,
+        "rowHeight": 0.7,
+        "showValue": "always",
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "none"
+        }
       },
-      "pluginVersion": "12.0.0",
+      "pluginVersion": "13.2.0",
       "targets": [
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "tShT4yr4z"
+            "uid": "${dsProxmox}"
           },
-          "query": "from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\")\n  |> filter(fn: (r) => r[\"_field\"] == \"network_up\" or r[\"_field\"] == \"link_speed\" or r[\"_field\"] == \"link_speed_max\")\n  |> filter(fn: (r) => r[\"host\"] == \"${server}\")\n  |> last()\n  |> keep(columns: [\"host\", \"instance\", \"_field\", \"_value\"])\n  |> group(columns: [\"host\", \"instance\"])\n  |> pivot(rowKey: [\"host\", \"instance\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  // Chi lay card vat ly toc do toi da >= 10G\n  |> filter(fn: (r) => exists r.link_speed_max and r.link_speed_max >= 10000.0)\n  |> map(fn: (r) => ({\n      card: r.instance + \" [\" + string(v: r.link_speed_max / 1000.0) + \"G]\",\n      speed: if exists r.network_up and r.network_up == 1.0 and exists r.link_speed then r.link_speed else 0.0\n  }))\n  |> group()\n  |> sort(columns: [\"card\"])\n  |> group(columns: [\"card\"])",
+          "query": "import \"join\"\n\nphys = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"link_speed_max\")\n  |> keep(columns: [\"instance\"])\n  |> group()\n  |> distinct(column: \"instance\")\n  |> findColumn(fn: (key) => true, column: \"_value\")\n\nlink = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"network_up\" or r[\"_field\"] == \"link_speed\" or r[\"_field\"] == \"link_speed_max\")\n  |> filter(fn: (r) => contains(value: r.instance, set: phys))\n  |> group(columns: [\"instance\", \"_field\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> group(columns: [\"instance\"], mode: \"by\")\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> sort(columns: [\"_time\"])\n  |> fill(column: \"link_speed_max\", usePrevious: true)\n  |> filter(fn: (r) => exists r.link_speed_max and r.link_speed_max >= 10000.0)\n  |> map(fn: (r) => ({ _time: r._time, instance: r.instance, mx: r.link_speed_max,\n      lv: if exists r.network_up and r.network_up == 1.0\n          then (if exists r.link_speed and r.link_speed > 0.0 then r.link_speed else 1.0) else 0.0 }))\n  |> group()\n\nerr = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] =~ /^(rx_crc_errors|rx_length_errors|rx_missed_errors|rx_over_errors|rx_fifo_errors|rx_frame_errors|tx_carrier_errors|tx_aborted_errors|tx_fifo_errors|tx_heartbeat_errors|tx_window_errors|collisions)$/)\n  |> filter(fn: (r) => contains(value: r.instance, set: phys))\n  |> group(columns: [\"instance\", \"_field\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> difference(nonNegative: true)\n  |> group(columns: [\"instance\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: sum, createEmpty: false)\n  |> map(fn: (r) => ({ _time: r._time, instance: r.instance, ev: r._value }))\n  |> group()\n\njoin.left(left: link, right: err,\n    on: (l, r) => l._time == r._time and l.instance == r.instance,\n    as: (l, r) => {\n        e = if exists r.ev then r.ev else 0.0\n        b = if e >= 1000.0 then 0.3 else if e >= 100.0 then 0.2 else if e >= 1.0 then 0.1 else 0.0\n        return { _time: l._time, nic: l.instance + \" [\" + string(v: l.mx / 1000.0) + \"G]\",\n                 _value: if l.lv == 0.0 then 0.0 else l.lv + b }\n    })\n  |> group(columns: [\"nic\"], mode: \"by\")\n  |> sort(columns: [\"_time\"])\n  |> yield(name: \"status\")",
           "refId": "A"
         }
       ],
-      "title": "Physical NIC Link Status (10G+)",
-      "type": "stat",
-      "description": "Physical NICs whose maximum supported speed is 10G or higher (from ethtool \"Supported link modes\"). The name shows the card max speed, the value is the current negotiated speed. Green = UP at 10G or faster, orange = UP but slower than 10G (check cable/SFP/switch port), red = DOWN."
+      "title": "NIC Link Status (10G+)",
+      "type": "state-timeline"
     },
     {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${dsProxmox}"
+      },
+      "description": "Negotiated link speed of each physical NIC over time. Flat line = stable. Drop to 0 = link DOWN. Step down = speed renegotiated (e.g. 10G → 1G). Green dashed line = 10G target. [xxG] = max speed of the card. Min column: if it shows 0, the link went down in the selected time range.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "axisSoftMax": 12000,
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "stepAfter",
+            "lineWidth": 3,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "showValues": false,
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "dashed"
+            }
+          },
+          "decimals": 0,
+          "displayName": "${__field.labels.nic}",
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "transparent",
+                "value": 0
+              },
+              {
+                "color": "#56A64B",
+                "value": 10000
+              }
+            ]
+          },
+          "unit": "Mbits"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 13
+      },
+      "id": 20030,
+      "interval": "1m",
+      "options": {
+        "legend": {
+          "calcs": [
+            "min",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "width": 300
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "13.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${dsProxmox}"
+          },
+          "query": "import \"join\"\n\nphys = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"link_speed_max\")\n  |> keep(columns: [\"instance\"])\n  |> group()\n  |> distinct(column: \"instance\")\n  |> findColumn(fn: (key) => true, column: \"_value\")\n\nlink = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"network_up\" or r[\"_field\"] == \"link_speed\" or r[\"_field\"] == \"link_speed_max\")\n  |> filter(fn: (r) => contains(value: r.instance, set: phys))\n  |> group(columns: [\"instance\", \"_field\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> group(columns: [\"instance\"], mode: \"by\")\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> sort(columns: [\"_time\"])\n  |> fill(column: \"link_speed_max\", usePrevious: true)\n  |> filter(fn: (r) => exists r.link_speed_max and r.link_speed_max >= 10000.0)\n  |> map(fn: (r) => ({ _time: r._time, instance: r.instance, mx: r.link_speed_max,\n      lv: if exists r.network_up and r.network_up == 1.0\n          then (if exists r.link_speed and r.link_speed > 0.0 then r.link_speed else 1.0) else 0.0 }))\n  |> group()\n\nerr = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] =~ /^(rx_crc_errors|rx_length_errors|rx_missed_errors|rx_over_errors|rx_fifo_errors|rx_frame_errors|tx_carrier_errors|tx_aborted_errors|tx_fifo_errors|tx_heartbeat_errors|tx_window_errors|collisions)$/)\n  |> filter(fn: (r) => contains(value: r.instance, set: phys))\n  |> group(columns: [\"instance\", \"_field\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> difference(nonNegative: true)\n  |> group(columns: [\"instance\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: sum, createEmpty: false)\n  |> map(fn: (r) => ({ _time: r._time, instance: r.instance, ev: r._value }))\n  |> group()\n\nlink\n  |> map(fn: (r) => ({ _time: r._time, nic: r.instance + \" [\" + string(v: r.mx / 1000.0) + \"G]\", _value: r.lv }))\n  |> group(columns: [\"nic\"], mode: \"by\")\n  |> yield(name: \"speed\")",
+          "refId": "A"
+        }
+      ],
+      "title": "NIC Link Speed",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${dsProxmox}"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -954,6 +1497,7 @@
               "type": "linear"
             },
             "showPoints": "never",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -969,7 +1513,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": 0
               },
               {
                 "color": "yellow",
@@ -1034,7 +1579,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 12
+        "y": 20
       },
       "id": 50,
       "options": {
@@ -1052,7 +1597,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.0.0",
+      "pluginVersion": "13.2.0",
       "targets": [
         {
           "datasource": {
@@ -1063,13 +1608,13 @@
           "refId": "A"
         }
       ],
-      "title": "Swap Usage Status",
+      "title": "Swap Usage History",
       "type": "timeseries"
     },
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "tShT4yr4z"
+        "uid": "${dsProxmox}"
       },
       "fieldConfig": {
         "defaults": {
@@ -1100,6 +1645,7 @@
               "type": "linear"
             },
             "showPoints": "auto",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -1115,7 +1661,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": 0
               },
               {
                 "color": "red",
@@ -1130,7 +1677,7 @@
         "h": 11,
         "w": 24,
         "x": 0,
-        "y": 20
+        "y": 28
       },
       "id": 9993,
       "options": {
@@ -1146,226 +1693,26 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.0.0",
+      "pluginVersion": "13.2.0",
       "targets": [
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "tShT4yr4z"
+            "uid": "${dsProxmox}"
           },
           "query": "from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\")\n  |> filter(fn: (r) => r[\"_field\"] == \"hardware_drop\")\n  |> filter(fn: (r) => r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"instance\"] !~ /^(lo|tap.*|veth.*|fwbr.*|fwpr.*|fwln.*|vmbr.*|bond.*)$/)\n  |> group(columns: [\"host\", \"instance\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> yield(name: \"last\")",
           "refId": "A"
         }
       ],
-      "title": "Hardware RX Drops (per interface, cumulative)",
+      "title": "Hardware RX Drops (Cumulative)",
       "type": "timeseries"
     },
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "tShT4yr4z"
+        "uid": "${dsProxmox}"
       },
-      "description": "UP/DOWN state and negotiated speed of every physical NIC over time. Green = UP at 10G or faster, orange = UP below 10G (check cable/SFP/switch port), red = DOWN. Use it to spot link flaps and speed renegotiation.",
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 31
-      },
-      "id": 10001,
-      "title": "NIC Link Status Timeline",
-      "type": "state-timeline",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "fixed",
-            "fixedColor": "text"
-          },
-          "custom": {
-            "fillOpacity": 80,
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineWidth": 0,
-            "spanNulls": false
-          },
-          "displayName": "${__field.labels.instance}",
-          "mappings": [
-            {
-              "type": "value",
-              "options": {
-                "DOWN": {
-                  "color": "red",
-                  "index": 0
-                },
-                "UP": {
-                  "color": "green",
-                  "index": 1
-                }
-              }
-            },
-            {
-              "type": "regex",
-              "options": {
-                "pattern": "^UP (10|25|40|50|100|200|400)G$",
-                "result": {
-                  "color": "green",
-                  "index": 2
-                }
-              }
-            },
-            {
-              "type": "regex",
-              "options": {
-                "pattern": "^UP ",
-                "result": {
-                  "color": "orange",
-                  "index": 3
-                }
-              }
-            }
-          ],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "text"
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "alignValue": "center",
-        "mergeValues": true,
-        "rowHeight": 0.8,
-        "showValue": "always",
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": false
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none",
-          "hideZeros": false
-        }
-      },
-      "pluginVersion": "12.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "influxdb",
-            "uid": "tShT4yr4z"
-          },
-          "query": "phys = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"link_speed_max\")\n  |> keep(columns: [\"instance\"])\n  |> group()\n  |> distinct(column: \"instance\")\n  |> findColumn(fn: (key) => true, column: \"_value\")\n\nfrom(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"network_up\" or r[\"_field\"] == \"link_speed\")\n  |> filter(fn: (r) => contains(value: r.instance, set: phys))\n  |> group(columns: [\"instance\", \"_field\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> group(columns: [\"instance\"], mode: \"by\")\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> map(fn: (r) => {\n      up = exists r.network_up and r.network_up == 1.0\n      sp = if exists r.link_speed then r.link_speed else 0.0\n      label = if sp >= 1000.0 then string(v: sp / 1000.0) + \"G\"\n              else if sp > 0.0 then string(v: int(v: sp)) + \"M\" else \"\"\n      return { _time: r._time, instance: r.instance,\n               _value: if not up then \"DOWN\" else if label == \"\" then \"UP\" else \"UP \" + label }\n  })\n  |> group(columns: [\"instance\"], mode: \"by\")\n  |> yield(name: \"link\")",
-          "refId": "A"
-        }
-      ]
-    },
-    {
-      "datasource": {
-        "type": "influxdb",
-        "uid": "tShT4yr4z"
-      },
-      "description": "New RX/TX errors per physical NIC in each interval (rx_errors, CRC, length, missed, overrun, FIFO, frame, tx_errors, carrier, aborted, collisions...). Green \"OK\" = no new errors, red \"N errors\" = N new errors in that interval. Drops are not counted here, see \"NIC Drops\" below.",
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 39
-      },
-      "id": 10002,
-      "title": "NIC Error Timeline (new errors per interval)",
-      "type": "state-timeline",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "fixed",
-            "fixedColor": "text"
-          },
-          "custom": {
-            "fillOpacity": 80,
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineWidth": 0,
-            "spanNulls": false
-          },
-          "displayName": "${__field.labels.instance}",
-          "mappings": [
-            {
-              "type": "value",
-              "options": {
-                "OK": {
-                  "color": "green",
-                  "index": 0
-                }
-              }
-            },
-            {
-              "type": "regex",
-              "options": {
-                "pattern": "^[0-9]+ errors?$",
-                "result": {
-                  "color": "red",
-                  "index": 1
-                }
-              }
-            }
-          ],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "text"
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "alignValue": "center",
-        "mergeValues": true,
-        "rowHeight": 0.8,
-        "showValue": "always",
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": false
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none",
-          "hideZeros": false
-        }
-      },
-      "pluginVersion": "12.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "influxdb",
-            "uid": "tShT4yr4z"
-          },
-          "query": "phys = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"link_speed_max\")\n  |> keep(columns: [\"instance\"])\n  |> group()\n  |> distinct(column: \"instance\")\n  |> findColumn(fn: (key) => true, column: \"_value\")\n\nfrom(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] =~ /^(rx_errors|rx_crc_errors|rx_length_errors|rx_missed_errors|rx_over_errors|rx_fifo_errors|rx_frame_errors|tx_errors|tx_carrier_errors|tx_aborted_errors|tx_fifo_errors|tx_heartbeat_errors|tx_window_errors|collisions)$/)\n  |> filter(fn: (r) => contains(value: r.instance, set: phys))\n  |> group(columns: [\"instance\", \"_field\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> difference(nonNegative: true)\n  |> group(columns: [\"instance\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: sum, createEmpty: false)\n  |> map(fn: (r) => ({ _time: r._time, instance: r.instance,\n      _value: if r._value == 0.0 then \"OK\"\n              else string(v: int(v: r._value)) + (if r._value == 1.0 then \" error\" else \" errors\") }))\n  |> group(columns: [\"instance\"], mode: \"by\")\n  |> yield(name: \"errors\")",
-          "refId": "A"
-        }
-      ]
-    },
-    {
-      "datasource": {
-        "type": "influxdb",
-        "uid": "tShT4yr4z"
-      },
-      "description": "One row per physical NIC with every kernel counter shown by \"ip -s link\" (/sys/class/net/<if>/statistics), cumulative since boot. Red cell = non-zero error/drop counter. Old errors stay here until reboot; check the timelines to see if they are still increasing.",
+      "description": "Link state and traffic counters accumulated since boot (ip -s link). Speed: 🟩 ≥10G · 🟧 1–9G · 🟥 <1G / DOWN.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1374,11 +1721,14 @@
           "custom": {
             "align": "center",
             "cellOptions": {
-              "type": "color-background",
-              "mode": "basic"
+              "mode": "basic",
+              "type": "color-background"
+            },
+            "footer": {
+              "reducers": []
             },
             "inspect": false,
-            "minWidth": 90
+            "minWidth": 50
           },
           "decimals": 0,
           "mappings": [],
@@ -1386,7 +1736,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "transparent"
+                "color": "transparent",
+                "value": 0
               },
               {
                 "color": "red",
@@ -1411,10 +1762,6 @@
               {
                 "id": "custom.align",
                 "value": "left"
-              },
-              {
-                "id": "custom.width",
-                "value": 150
               }
             ]
           },
@@ -1428,19 +1775,199 @@
                 "id": "mappings",
                 "value": [
                   {
-                    "type": "value",
                     "options": {
                       "0": {
-                        "text": "DOWN",
-                        "color": "red",
-                        "index": 0
+                        "color": "#C4162A",
+                        "index": 0,
+                        "text": "⛔ DOWN"
                       },
                       "1": {
-                        "text": "UP",
-                        "color": "green",
-                        "index": 1
+                        "color": "#56A64B",
+                        "index": 1,
+                        "text": "✔ UP"
                       }
-                    }
+                    },
+                    "type": "value"
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "gradient",
+                  "type": "color-background"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "link_speed"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "0": {
+                        "color": "#C4162A",
+                        "index": 0,
+                        "text": "⛔ DOWN"
+                      },
+                      "100": {
+                        "color": "#F2495C",
+                        "index": 1,
+                        "text": "100M"
+                      },
+                      "1000": {
+                        "color": "#FF9830",
+                        "index": 2,
+                        "text": "1G"
+                      },
+                      "2500": {
+                        "color": "#FF9830",
+                        "index": 3,
+                        "text": "2.5G"
+                      },
+                      "5000": {
+                        "color": "#FF9830",
+                        "index": 4,
+                        "text": "5G"
+                      },
+                      "10000": {
+                        "color": "#56A64B",
+                        "index": 5,
+                        "text": "10G"
+                      },
+                      "25000": {
+                        "color": "#56A64B",
+                        "index": 6,
+                        "text": "25G"
+                      },
+                      "40000": {
+                        "color": "#56A64B",
+                        "index": 7,
+                        "text": "40G"
+                      },
+                      "50000": {
+                        "color": "#56A64B",
+                        "index": 8,
+                        "text": "50G"
+                      },
+                      "100000": {
+                        "color": "#56A64B",
+                        "index": 9,
+                        "text": "100G"
+                      }
+                    },
+                    "type": "value"
+                  },
+                  {
+                    "options": {
+                      "from": 1,
+                      "result": {
+                        "color": "#F2495C",
+                        "index": 20
+                      },
+                      "to": 999.99
+                    },
+                    "type": "range"
+                  },
+                  {
+                    "options": {
+                      "from": 1000,
+                      "result": {
+                        "color": "#FF9830",
+                        "index": 21
+                      },
+                      "to": 9999.99
+                    },
+                    "type": "range"
+                  },
+                  {
+                    "options": {
+                      "from": 10000,
+                      "result": {
+                        "color": "#56A64B",
+                        "index": 22
+                      },
+                      "to": 1000000000000
+                    },
+                    "type": "range"
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "gradient",
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "link_speed_max"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "0": {
+                        "color": "red",
+                        "index": 0,
+                        "text": "DOWN"
+                      },
+                      "100": {
+                        "index": 1,
+                        "text": "100M"
+                      },
+                      "1000": {
+                        "index": 2,
+                        "text": "1G"
+                      },
+                      "2500": {
+                        "index": 3,
+                        "text": "2.5G"
+                      },
+                      "5000": {
+                        "index": 4,
+                        "text": "5G"
+                      },
+                      "10000": {
+                        "index": 5,
+                        "text": "10G"
+                      },
+                      "25000": {
+                        "index": 6,
+                        "text": "25G"
+                      },
+                      "40000": {
+                        "index": 7,
+                        "text": "40G"
+                      },
+                      "50000": {
+                        "index": 8,
+                        "text": "50G"
+                      },
+                      "100000": {
+                        "index": 9,
+                        "text": "100G"
+                      }
+                    },
+                    "type": "value"
                   }
                 ]
               },
@@ -1449,92 +1976,20 @@
                 "value": {
                   "type": "color-text"
                 }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": "^link_speed(_max)?$"
-            },
-            "properties": [
-              {
-                "id": "mappings",
-                "value": [
-                  {
-                    "type": "value",
-                    "options": {
-                      "0": {
-                        "text": "DOWN",
-                        "color": "red",
-                        "index": 0
-                      },
-                      "100": {
-                        "text": "100M",
-                        "index": 1
-                      },
-                      "1000": {
-                        "text": "1G",
-                        "index": 2
-                      },
-                      "2500": {
-                        "text": "2.5G",
-                        "index": 3
-                      },
-                      "5000": {
-                        "text": "5G",
-                        "index": 4
-                      },
-                      "10000": {
-                        "text": "10G",
-                        "index": 5
-                      },
-                      "25000": {
-                        "text": "25G",
-                        "index": 6
-                      },
-                      "40000": {
-                        "text": "40G",
-                        "index": 7
-                      },
-                      "50000": {
-                        "text": "50G",
-                        "index": 8
-                      },
-                      "100000": {
-                        "text": "100G",
-                        "index": 9
-                      }
-                    }
-                  }
-                ]
               },
               {
-                "id": "custom.cellOptions",
+                "id": "color",
                 "value": {
-                  "type": "auto"
+                  "fixedColor": "text",
+                  "mode": "fixed"
                 }
               }
             ]
           },
           {
             "matcher": {
-              "id": "byRegexp",
-              "options": "^(multicast|[rt]x_packets)$"
-            },
-            "properties": [
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "auto"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": "^[rt]x_bytes$"
+              "id": "byName",
+              "options": "rx_packets"
             },
             "properties": [
               {
@@ -1545,123 +2000,653 @@
               },
               {
                 "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "tx_packets"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "auto"
+                }
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "multicast"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "auto"
+                }
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "rx_bytes"
+            },
+            "properties": [
+              {
+                "id": "unit",
                 "value": "decbytes"
               },
               {
                 "id": "decimals",
                 "value": 2
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#5794F2",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "tx_bytes"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "decbytes"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#B877D9",
+                  "mode": "fixed"
+                }
               }
             ]
           }
         ]
       },
       "gridPos": {
-        "h": 9,
+        "h": 5,
         "w": 24,
         "x": 0,
-        "y": 47
+        "y": 39
       },
       "id": 9995,
       "options": {
         "cellHeight": "sm",
-        "footer": {
-          "show": false,
-          "reducer": [
-            "sum"
-          ],
-          "fields": ""
-        },
         "showHeader": true,
         "sortBy": [
           {
-            "displayName": "RX Errors",
-            "desc": true
+            "desc": true,
+            "displayName": "RX Errors"
           }
         ]
       },
-      "pluginVersion": "12.0.0",
+      "pluginVersion": "13.2.0",
       "targets": [
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "tShT4yr4z"
+            "uid": "${dsProxmox}"
           },
           "query": "phys = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"link_speed_max\")\n  |> keep(columns: [\"instance\"])\n  |> group()\n  |> distinct(column: \"instance\")\n  |> findColumn(fn: (key) => true, column: \"_value\")\n\nfrom(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] =~ /^(network_up|link_speed|link_speed_max|rx_errors|rx_crc_errors|rx_length_errors|rx_missed_errors|rx_dropped|rx_over_errors|rx_fifo_errors|rx_frame_errors|rx_nohandler|tx_errors|tx_dropped|tx_carrier_errors|tx_aborted_errors|tx_fifo_errors|tx_heartbeat_errors|tx_window_errors|collisions|multicast|rx_bytes|tx_bytes|rx_packets|tx_packets)$/)\n  |> filter(fn: (r) => contains(value: r.instance, set: phys))\n  |> last()\n  |> keep(columns: [\"instance\", \"_field\", \"_value\"])\n  |> group()\n  |> pivot(rowKey: [\"instance\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> sort(columns: [\"instance\"])",
           "refId": "A"
         }
       ],
-      "title": "NIC Counters - ip -s link (cumulative since boot)",
-      "type": "table",
+      "title": "NIC Link & Traffic (Since Boot)",
       "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "instance",
+                "link_speed",
+                "link_speed_max",
+                "multicast",
+                "network_up",
+                "rx_bytes",
+                "rx_packets",
+                "tx_bytes",
+                "tx_packets"
+              ]
+            }
+          }
+        },
         {
           "id": "organize",
           "options": {
+            "excludeByName": {
+              "collisions": true,
+              "rx_crc_errors": true,
+              "rx_dropped": true,
+              "rx_errors": true,
+              "rx_fifo_errors": true,
+              "rx_frame_errors": true,
+              "rx_length_errors": true,
+              "rx_missed_errors": true,
+              "rx_nohandler": true,
+              "rx_over_errors": true,
+              "tx_aborted_errors": true,
+              "tx_carrier_errors": true,
+              "tx_dropped": true,
+              "tx_errors": true,
+              "tx_fifo_errors": true,
+              "tx_heartbeat_errors": true,
+              "tx_window_errors": true
+            },
             "indexByName": {
               "instance": 0,
-              "network_up": 1,
               "link_speed": 2,
               "link_speed_max": 3,
-              "rx_errors": 4,
-              "rx_crc_errors": 5,
-              "rx_length_errors": 6,
-              "rx_missed_errors": 7,
-              "rx_dropped": 8,
-              "rx_over_errors": 9,
-              "rx_fifo_errors": 10,
-              "rx_frame_errors": 11,
-              "rx_nohandler": 12,
-              "tx_errors": 13,
-              "tx_dropped": 14,
-              "tx_carrier_errors": 15,
-              "tx_aborted_errors": 16,
-              "tx_fifo_errors": 17,
-              "tx_heartbeat_errors": 18,
-              "tx_window_errors": 19,
-              "collisions": 20,
-              "multicast": 21,
-              "rx_bytes": 22,
-              "tx_bytes": 23,
-              "rx_packets": 24,
-              "tx_packets": 25
+              "multicast": 8,
+              "network_up": 1,
+              "rx_bytes": 4,
+              "rx_packets": 6,
+              "tx_bytes": 5,
+              "tx_packets": 7
             },
             "renameByName": {
+              "collisions": "Collisions",
               "instance": "Interface",
-              "network_up": "Link",
               "link_speed": "Speed",
               "link_speed_max": "Max Speed",
-              "rx_errors": "RX Errors",
+              "multicast": "RX Multicast",
+              "network_up": "Link",
+              "rx_bytes": "RX Bytes",
               "rx_crc_errors": "RX CRC Errors",
-              "rx_length_errors": "RX Length Errors",
-              "rx_missed_errors": "RX Missed",
               "rx_dropped": "RX Dropped",
-              "rx_over_errors": "RX Overrun",
+              "rx_errors": "RX Errors",
               "rx_fifo_errors": "RX FIFO Errors",
               "rx_frame_errors": "RX Frame Errors",
+              "rx_length_errors": "RX Length Errors",
+              "rx_missed_errors": "RX Missed",
               "rx_nohandler": "RX No Handler",
-              "tx_errors": "TX Errors",
-              "tx_dropped": "TX Dropped",
-              "tx_carrier_errors": "TX Carrier Errors",
+              "rx_over_errors": "RX Overrun",
+              "rx_packets": "RX Packets",
               "tx_aborted_errors": "TX Aborted",
+              "tx_bytes": "TX Bytes",
+              "tx_carrier_errors": "TX Carrier Errors",
+              "tx_dropped": "TX Dropped",
+              "tx_errors": "TX Errors",
               "tx_fifo_errors": "TX FIFO Errors",
               "tx_heartbeat_errors": "TX Heartbeat Errors",
-              "tx_window_errors": "TX Window Errors",
-              "collisions": "Collisions",
-              "multicast": "RX Multicast",
-              "rx_bytes": "RX Bytes",
-              "tx_bytes": "TX Bytes",
-              "rx_packets": "RX Packets",
-              "tx_packets": "TX Packets"
-            },
-            "excludeByName": {}
+              "tx_packets": "TX Packets",
+              "tx_window_errors": "TX Window Errors"
+            }
           }
         }
-      ]
+      ],
+      "type": "table"
     },
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "tShT4yr4z"
+        "uid": "${dsProxmox}"
       },
+      "description": "RX error counters accumulated since boot (ip -s link). Alert levels: 🟩 0 = OK · 🟨 1–99 = attention · 🟧 100–999 = warning · 🟥 1,000–9,999 = critical · dark red ≥10,000 = severe.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "center",
+            "cellOptions": {
+              "applyToRow": false,
+              "mode": "basic",
+              "type": "color-background",
+              "wrapText": false
+            },
+            "footer": {
+              "reducers": []
+            },
+            "inspect": false,
+            "minWidth": 50
+          },
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgba(86,166,75,0.30)",
+                "value": 0
+              },
+              {
+                "color": "#FADE2A",
+                "value": 1
+              },
+              {
+                "color": "#FF9830",
+                "value": 100
+              },
+              {
+                "color": "#F2495C",
+                "value": 1000
+              },
+              {
+                "color": "#C4162A",
+                "value": 10000
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "instance"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "auto"
+                }
+              },
+              {
+                "id": "custom.align",
+                "value": "left"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "rx_errors"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "gradient",
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 110
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 24,
+        "x": 0,
+        "y": 44
+      },
+      "id": 20010,
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "RX Errors"
+          }
+        ]
+      },
+      "pluginVersion": "13.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${dsProxmox}"
+          },
+          "query": "phys = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"link_speed_max\")\n  |> keep(columns: [\"instance\"])\n  |> group()\n  |> distinct(column: \"instance\")\n  |> findColumn(fn: (key) => true, column: \"_value\")\n\nfrom(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] =~ /^(network_up|link_speed|link_speed_max|rx_errors|rx_crc_errors|rx_length_errors|rx_missed_errors|rx_dropped|rx_over_errors|rx_fifo_errors|rx_frame_errors|rx_nohandler|tx_errors|tx_dropped|tx_carrier_errors|tx_aborted_errors|tx_fifo_errors|tx_heartbeat_errors|tx_window_errors|collisions|multicast|rx_bytes|tx_bytes|rx_packets|tx_packets)$/)\n  |> filter(fn: (r) => contains(value: r.instance, set: phys))\n  |> last()\n  |> keep(columns: [\"instance\", \"_field\", \"_value\"])\n  |> group()\n  |> pivot(rowKey: [\"instance\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> sort(columns: [\"instance\"])",
+          "refId": "A"
+        }
+      ],
+      "title": "NIC RX Errors (Since Boot)",
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "instance",
+                "rx_crc_errors",
+                "rx_dropped",
+                "rx_errors",
+                "rx_fifo_errors",
+                "rx_frame_errors",
+                "rx_length_errors",
+                "rx_missed_errors",
+                "rx_nohandler",
+                "rx_over_errors"
+              ]
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "collisions": true,
+              "link_speed": true,
+              "link_speed_max": true,
+              "multicast": true,
+              "network_up": true,
+              "rx_bytes": true,
+              "rx_packets": true,
+              "tx_aborted_errors": true,
+              "tx_bytes": true,
+              "tx_carrier_errors": true,
+              "tx_dropped": true,
+              "tx_errors": true,
+              "tx_fifo_errors": true,
+              "tx_heartbeat_errors": true,
+              "tx_packets": true,
+              "tx_window_errors": true
+            },
+            "indexByName": {
+              "instance": 0,
+              "rx_crc_errors": 2,
+              "rx_dropped": 5,
+              "rx_errors": 1,
+              "rx_fifo_errors": 7,
+              "rx_frame_errors": 8,
+              "rx_length_errors": 3,
+              "rx_missed_errors": 4,
+              "rx_nohandler": 9,
+              "rx_over_errors": 6
+            },
+            "renameByName": {
+              "collisions": "Collisions",
+              "instance": "Interface",
+              "link_speed": "Speed",
+              "link_speed_max": "Max Speed",
+              "multicast": "RX Multicast",
+              "network_up": "Link",
+              "rx_bytes": "RX Bytes",
+              "rx_crc_errors": "CRC",
+              "rx_dropped": "Dropped",
+              "rx_errors": "Errors",
+              "rx_fifo_errors": "FIFO",
+              "rx_frame_errors": "Frame",
+              "rx_length_errors": "Length",
+              "rx_missed_errors": "Missed",
+              "rx_nohandler": "No Handler",
+              "rx_over_errors": "Overrun",
+              "rx_packets": "RX Packets",
+              "tx_aborted_errors": "TX Aborted",
+              "tx_bytes": "TX Bytes",
+              "tx_carrier_errors": "TX Carrier Errors",
+              "tx_dropped": "TX Dropped",
+              "tx_errors": "TX Errors",
+              "tx_fifo_errors": "TX FIFO Errors",
+              "tx_heartbeat_errors": "TX Heartbeat Errors",
+              "tx_packets": "TX Packets",
+              "tx_window_errors": "TX Window Errors"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${dsProxmox}"
+      },
+      "description": "TX error counters accumulated since boot (ip -s link). Alert levels: 🟩 0 = OK · 🟨 1–99 = attention · 🟧 100–999 = warning · 🟥 1,000–9,999 = critical · dark red ≥10,000 = severe.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "center",
+            "cellOptions": {
+              "applyToRow": false,
+              "mode": "basic",
+              "type": "color-background",
+              "wrapText": false
+            },
+            "footer": {
+              "reducers": []
+            },
+            "inspect": false,
+            "minWidth": 50
+          },
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgba(86,166,75,0.30)",
+                "value": 0
+              },
+              {
+                "color": "#FADE2A",
+                "value": 1
+              },
+              {
+                "color": "#FF9830",
+                "value": 100
+              },
+              {
+                "color": "#F2495C",
+                "value": 1000
+              },
+              {
+                "color": "#C4162A",
+                "value": 10000
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "instance"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "auto"
+                }
+              },
+              {
+                "id": "custom.align",
+                "value": "left"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "tx_errors"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "gradient",
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 110
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 24,
+        "x": 0,
+        "y": 49
+      },
+      "id": 20011,
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "RX Errors"
+          }
+        ]
+      },
+      "pluginVersion": "13.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${dsProxmox}"
+          },
+          "query": "phys = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"link_speed_max\")\n  |> keep(columns: [\"instance\"])\n  |> group()\n  |> distinct(column: \"instance\")\n  |> findColumn(fn: (key) => true, column: \"_value\")\n\nfrom(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] =~ /^(network_up|link_speed|link_speed_max|rx_errors|rx_crc_errors|rx_length_errors|rx_missed_errors|rx_dropped|rx_over_errors|rx_fifo_errors|rx_frame_errors|rx_nohandler|tx_errors|tx_dropped|tx_carrier_errors|tx_aborted_errors|tx_fifo_errors|tx_heartbeat_errors|tx_window_errors|collisions|multicast|rx_bytes|tx_bytes|rx_packets|tx_packets)$/)\n  |> filter(fn: (r) => contains(value: r.instance, set: phys))\n  |> last()\n  |> keep(columns: [\"instance\", \"_field\", \"_value\"])\n  |> group()\n  |> pivot(rowKey: [\"instance\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> sort(columns: [\"instance\"])",
+          "refId": "A"
+        }
+      ],
+      "title": "NIC TX Errors (Since Boot)",
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "collisions",
+                "instance",
+                "tx_aborted_errors",
+                "tx_carrier_errors",
+                "tx_dropped",
+                "tx_errors",
+                "tx_fifo_errors",
+                "tx_heartbeat_errors",
+                "tx_window_errors"
+              ]
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "link_speed": true,
+              "link_speed_max": true,
+              "multicast": true,
+              "network_up": true,
+              "rx_bytes": true,
+              "rx_crc_errors": true,
+              "rx_dropped": true,
+              "rx_errors": true,
+              "rx_fifo_errors": true,
+              "rx_frame_errors": true,
+              "rx_length_errors": true,
+              "rx_missed_errors": true,
+              "rx_nohandler": true,
+              "rx_over_errors": true,
+              "rx_packets": true,
+              "tx_bytes": true,
+              "tx_packets": true
+            },
+            "indexByName": {
+              "collisions": 8,
+              "instance": 0,
+              "tx_aborted_errors": 4,
+              "tx_carrier_errors": 3,
+              "tx_dropped": 2,
+              "tx_errors": 1,
+              "tx_fifo_errors": 5,
+              "tx_heartbeat_errors": 6,
+              "tx_window_errors": 7
+            },
+            "renameByName": {
+              "collisions": "Collisions",
+              "instance": "Interface",
+              "link_speed": "Speed",
+              "link_speed_max": "Max Speed",
+              "multicast": "RX Multicast",
+              "network_up": "Link",
+              "rx_bytes": "RX Bytes",
+              "rx_crc_errors": "RX CRC Errors",
+              "rx_dropped": "RX Dropped",
+              "rx_errors": "RX Errors",
+              "rx_fifo_errors": "RX FIFO Errors",
+              "rx_frame_errors": "RX Frame Errors",
+              "rx_length_errors": "RX Length Errors",
+              "rx_missed_errors": "RX Missed",
+              "rx_nohandler": "RX No Handler",
+              "rx_over_errors": "RX Overrun",
+              "rx_packets": "RX Packets",
+              "tx_aborted_errors": "Aborted",
+              "tx_bytes": "TX Bytes",
+              "tx_carrier_errors": "Carrier",
+              "tx_dropped": "Dropped",
+              "tx_errors": "Errors",
+              "tx_fifo_errors": "FIFO",
+              "tx_heartbeat_errors": "Heartbeat",
+              "tx_packets": "TX Packets",
+              "tx_window_errors": "Window"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${dsProxmox}"
+      },
+      "description": "Number of NEW RX errors in each time interval (delta of the ip -s link counters). A bar = errors occurred at that time. Yellow dashed line = 1 error (attention), red dashed line = 100 errors (critical). The legend table is sorted by Total (descending), so the NIC / error type with the most errors is always on top.\n• CRC: corrupted frames — bad cable / SFP / optics\n• Length: frames with an invalid length\n• Missed / Overrun / RX FIFO: NIC or ring buffer overflow — CPU/IRQ cannot keep up\n• Frame: frame alignment errors\n• RX Errors (total): sum of all RX error types",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1671,12 +2656,13 @@
             "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
-            "axisLabel": "",
+            "axisLabel": "New Errors",
             "axisPlacement": "auto",
+            "axisSoftMax": 5,
             "barAlignment": 0,
             "barWidthFactor": 0.6,
             "drawStyle": "bars",
-            "fillOpacity": 80,
+            "fillOpacity": 75,
             "gradientMode": "none",
             "hideFrom": {
               "legend": false,
@@ -1685,57 +2671,67 @@
             },
             "insertNulls": false,
             "lineInterpolation": "linear",
-            "lineWidth": 2,
+            "lineWidth": 1,
             "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
             },
-            "showPoints": "auto",
+            "showPoints": "never",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
-              "mode": "none"
+              "mode": "normal"
             },
             "thresholdsStyle": {
-              "mode": "off"
+              "mode": "dashed"
             }
           },
+          "decimals": 0,
           "displayName": "${__field.labels.series}",
           "mappings": [],
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "transparent",
+                "value": 0
               },
               {
-                "color": "red",
+                "color": "#FADE2A",
                 "value": 1
+              },
+              {
+                "color": "#F2495C",
+                "value": 100
               }
             ]
           },
-          "decimals": 0,
-          "min": 0,
           "unit": "short"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 9,
-        "w": 12,
+        "h": 8,
+        "w": 24,
         "x": 0,
-        "y": 56
+        "y": 54
       },
       "id": 9996,
       "options": {
         "legend": {
           "calcs": [
             "sum",
-            "max"
+            "max",
+            "lastNotNull"
           ],
           "displayMode": "table",
           "placement": "right",
-          "showLegend": true
+          "showLegend": true,
+          "sortBy": "Total",
+          "sortDesc": true,
+          "width": 420
         },
         "tooltip": {
           "hideZeros": true,
@@ -1743,26 +2739,26 @@
           "sort": "desc"
         }
       },
-      "pluginVersion": "12.0.0",
+      "pluginVersion": "13.2.0",
       "targets": [
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "tShT4yr4z"
+            "uid": "${dsProxmox}"
           },
-          "query": "phys = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"link_speed_max\")\n  |> keep(columns: [\"instance\"])\n  |> group()\n  |> distinct(column: \"instance\")\n  |> findColumn(fn: (key) => true, column: \"_value\")\n\nfrom(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] =~ /^rx_(errors|crc_errors|length_errors|missed_errors|over_errors|fifo_errors|frame_errors)$/)\n  |> filter(fn: (r) => contains(value: r.instance, set: phys))\n  |> group(columns: [\"instance\", \"_field\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> difference(nonNegative: true)\n  |> map(fn: (r) => ({ r with series: r.instance + \" \" + r._field }))\n  |> group(columns: [\"series\"], mode: \"by\")\n  |> keep(columns: [\"_time\", \"_value\", \"series\"])\n  |> yield(name: \"delta\")",
+          "query": "phys = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"link_speed_max\")\n  |> keep(columns: [\"instance\"])\n  |> group()\n  |> distinct(column: \"instance\")\n  |> findColumn(fn: (key) => true, column: \"_value\")\n\nfrom(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] =~ /^rx_(errors|crc_errors|length_errors|missed_errors|over_errors|fifo_errors|frame_errors)$/)\n  |> filter(fn: (r) => contains(value: r.instance, set: phys))\n  |> group(columns: [\"instance\", \"_field\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> difference(nonNegative: true)\n  |> map(fn: (r) => ({ r with series: r.instance + \"  ·  \" + (if r._field == \"rx_errors\" then \"RX Errors (total)\" else if r._field == \"rx_crc_errors\" then \"CRC\" else if r._field == \"rx_length_errors\" then \"Length\" else if r._field == \"rx_missed_errors\" then \"Missed\" else if r._field == \"rx_over_errors\" then \"Overrun\" else if r._field == \"rx_fifo_errors\" then \"RX FIFO\" else if r._field == \"rx_frame_errors\" then \"Frame\" else if r._field == \"rx_dropped\" then \"RX Dropped\" else if r._field == \"rx_nohandler\" then \"RX No Handler\" else if r._field == \"tx_errors\" then \"TX Errors (total)\" else if r._field == \"tx_dropped\" then \"TX Dropped\" else if r._field == \"tx_carrier_errors\" then \"Carrier\" else if r._field == \"tx_aborted_errors\" then \"Aborted\" else if r._field == \"tx_fifo_errors\" then \"TX FIFO\" else if r._field == \"tx_heartbeat_errors\" then \"Heartbeat\" else if r._field == \"tx_window_errors\" then \"Window\" else if r._field == \"collisions\" then \"Collisions\" else r._field) }))\n  |> group(columns: [\"series\"], mode: \"by\")\n  |> keep(columns: [\"_time\", \"_value\", \"series\"])\n  |> yield(name: \"delta\")",
           "refId": "A"
         }
       ],
-      "title": "NIC RX Errors - CRC / Length / Missed / Overrun (new per interval)",
-      "type": "timeseries",
-      "description": "New RX errors per interval for each physical NIC and counter. CRC and length errors almost always mean a physical-layer problem (cable/DAC, SFP, switch port). Legend: Sum = total in the selected range, Max = largest burst."
+      "title": "NIC RX Errors (Per Interval)",
+      "type": "timeseries"
     },
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "tShT4yr4z"
+        "uid": "${dsProxmox}"
       },
+      "description": "Number of NEW TX errors and dropped packets in each time interval. Yellow dashed line = 1 (attention), red dashed line = 100 (critical). The legend table is sorted by Total (descending).\n• RX / TX Dropped: packets dropped by the kernel (queue full, VLAN/MTU mismatch)\n• Carrier: loss of physical signal — link flap, cable / SFP issue\n• Aborted / Window / Heartbeat: physical-layer errors\n• Collisions: collisions (half-duplex)\n• RX No Handler: packets with no protocol handler\n• TX Errors (total): sum of all TX error types",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1772,12 +2768,13 @@
             "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
-            "axisLabel": "",
+            "axisLabel": "New Errors",
             "axisPlacement": "auto",
+            "axisSoftMax": 5,
             "barAlignment": 0,
             "barWidthFactor": 0.6,
             "drawStyle": "bars",
-            "fillOpacity": 80,
+            "fillOpacity": 75,
             "gradientMode": "none",
             "hideFrom": {
               "legend": false,
@@ -1786,57 +2783,67 @@
             },
             "insertNulls": false,
             "lineInterpolation": "linear",
-            "lineWidth": 2,
+            "lineWidth": 1,
             "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
             },
-            "showPoints": "auto",
+            "showPoints": "never",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
-              "mode": "none"
+              "mode": "normal"
             },
             "thresholdsStyle": {
-              "mode": "off"
+              "mode": "dashed"
             }
           },
+          "decimals": 0,
           "displayName": "${__field.labels.series}",
           "mappings": [],
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "transparent",
+                "value": 0
               },
               {
-                "color": "red",
+                "color": "#FADE2A",
                 "value": 1
+              },
+              {
+                "color": "#F2495C",
+                "value": 100
               }
             ]
           },
-          "decimals": 0,
-          "min": 0,
           "unit": "short"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 12,
-        "y": 56
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 62
       },
       "id": 9997,
       "options": {
         "legend": {
           "calcs": [
             "sum",
-            "max"
+            "max",
+            "lastNotNull"
           ],
           "displayMode": "table",
           "placement": "right",
-          "showLegend": true
+          "showLegend": true,
+          "sortBy": "Total",
+          "sortDesc": true,
+          "width": 420
         },
         "tooltip": {
           "hideZeros": true,
@@ -1844,27 +2851,26 @@
           "sort": "desc"
         }
       },
-      "pluginVersion": "12.0.0",
+      "pluginVersion": "13.2.0",
       "targets": [
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "tShT4yr4z"
+            "uid": "${dsProxmox}"
           },
-          "query": "phys = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"link_speed_max\")\n  |> keep(columns: [\"instance\"])\n  |> group()\n  |> distinct(column: \"instance\")\n  |> findColumn(fn: (key) => true, column: \"_value\")\n\nfrom(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] =~ /^(rx_dropped|rx_nohandler|tx_dropped|tx_errors|tx_carrier_errors|tx_aborted_errors|tx_fifo_errors|tx_heartbeat_errors|tx_window_errors|collisions)$/)\n  |> filter(fn: (r) => contains(value: r.instance, set: phys))\n  |> group(columns: [\"instance\", \"_field\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> difference(nonNegative: true)\n  |> map(fn: (r) => ({ r with series: r.instance + \" \" + r._field }))\n  |> group(columns: [\"series\"], mode: \"by\")\n  |> keep(columns: [\"_time\", \"_value\", \"series\"])\n  |> yield(name: \"delta\")",
+          "query": "phys = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"link_speed_max\")\n  |> keep(columns: [\"instance\"])\n  |> group()\n  |> distinct(column: \"instance\")\n  |> findColumn(fn: (key) => true, column: \"_value\")\n\nfrom(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] =~ /^(rx_dropped|rx_nohandler|tx_dropped|tx_errors|tx_carrier_errors|tx_aborted_errors|tx_fifo_errors|tx_heartbeat_errors|tx_window_errors|collisions)$/)\n  |> filter(fn: (r) => contains(value: r.instance, set: phys))\n  |> group(columns: [\"instance\", \"_field\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> difference(nonNegative: true)\n  |> map(fn: (r) => ({ r with series: r.instance + \"  ·  \" + (if r._field == \"rx_errors\" then \"RX Errors (total)\" else if r._field == \"rx_crc_errors\" then \"CRC\" else if r._field == \"rx_length_errors\" then \"Length\" else if r._field == \"rx_missed_errors\" then \"Missed\" else if r._field == \"rx_over_errors\" then \"Overrun\" else if r._field == \"rx_fifo_errors\" then \"RX FIFO\" else if r._field == \"rx_frame_errors\" then \"Frame\" else if r._field == \"rx_dropped\" then \"RX Dropped\" else if r._field == \"rx_nohandler\" then \"RX No Handler\" else if r._field == \"tx_errors\" then \"TX Errors (total)\" else if r._field == \"tx_dropped\" then \"TX Dropped\" else if r._field == \"tx_carrier_errors\" then \"Carrier\" else if r._field == \"tx_aborted_errors\" then \"Aborted\" else if r._field == \"tx_fifo_errors\" then \"TX FIFO\" else if r._field == \"tx_heartbeat_errors\" then \"Heartbeat\" else if r._field == \"tx_window_errors\" then \"Window\" else if r._field == \"collisions\" then \"Collisions\" else r._field) }))\n  |> group(columns: [\"series\"], mode: \"by\")\n  |> keep(columns: [\"_time\", \"_value\", \"series\"])\n  |> yield(name: \"delta\")",
           "refId": "A"
         }
       ],
-      "title": "NIC Drops & TX Errors - Dropped / Carrier / Collisions (new per interval)",
-      "type": "timeseries",
-      "description": "New dropped packets and TX errors per interval. rx_dropped can grow from normal software drops (unknown VLAN/protocol); worry when it grows fast together with rx_missed / rx_fifo. tx_dropped often means link flaps."
+      "title": "NIC TX Errors & Drops (Per Interval)",
+      "type": "timeseries"
     },
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "tShT4yr4z"
+        "uid": "${dsProxmox}"
       },
-      "description": "Driver counters from \"ethtool -S\" (port.*, veb.*, rx_crc_errors...) with a non-zero value, cumulative since boot. Field name = \"ethtool_\" + counter name.",
+      "description": "Driver/hardware counters from \"ethtool -S\" that are non-zero, accumulated since boot (the \"ethtool_\" prefix is removed).\nAlert levels: 🟩 0 = OK · 🟨 1–99 = attention · 🟧 100–999 = warning · 🟥 1,000–9,999 = critical · dark red ≥10,000 = severe.\nNote: not every counter is an error. Example: rx_steer_missed_packets (mlx5) = packets that did not match any flow-steering rule — often normal background traffic; only investigate if it keeps growing quickly. Check the chart on the right to see whether a counter is still increasing.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1875,18 +2881,35 @@
             "cellOptions": {
               "type": "auto"
             },
+            "footer": {
+              "reducers": []
+            },
             "inspect": false
           },
           "mappings": [],
+          "noValue": "All ethtool counters are 0 ✔",
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "transparent"
+                "color": "rgba(86,166,75,0.30)",
+                "value": 0
               },
               {
-                "color": "dark-red",
+                "color": "#FADE2A",
                 "value": 1
+              },
+              {
+                "color": "#FF9830",
+                "value": 100
+              },
+              {
+                "color": "#F2495C",
+                "value": 1000
+              },
+              {
+                "color": "#C4162A",
+                "value": 10000
               }
             ]
           }
@@ -1900,7 +2923,11 @@
             "properties": [
               {
                 "id": "displayName",
-                "value": "Interface"
+                "value": "NIC"
+              },
+              {
+                "id": "custom.width",
+                "value": 100
               }
             ]
           },
@@ -1911,8 +2938,25 @@
             },
             "properties": [
               {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#8AB8FF",
+                  "mode": "fixed"
+                }
+              },
+              {
                 "id": "displayName",
                 "value": "Counter"
+              },
+              {
+                "id": "custom.width",
+                "value": 210
               }
             ]
           },
@@ -1923,8 +2967,8 @@
             },
             "properties": [
               {
-                "id": "displayName",
-                "value": "Value"
+                "id": "unit",
+                "value": "short"
               },
               {
                 "id": "decimals",
@@ -1933,9 +2977,22 @@
               {
                 "id": "custom.cellOptions",
                 "value": {
-                  "type": "color-background",
-                  "mode": "basic"
+                  "mode": "gradient",
+                  "type": "gauge",
+                  "valueDisplayMode": "color"
                 }
+              },
+              {
+                "id": "max",
+                "value": 1000
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "displayName",
+                "value": "Count"
               }
             ]
           }
@@ -1943,41 +3000,55 @@
       },
       "gridPos": {
         "h": 10,
-        "w": 9,
+        "w": 12,
         "x": 0,
-        "y": 65
+        "y": 70
       },
       "id": 9998,
       "options": {
-        "cellHeight": "sm",
-        "footer": {
-          "show": false,
-          "reducer": [
-            "sum"
-          ],
-          "fields": ""
-        },
-        "showHeader": true
+        "cellHeight": "md",
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "Count"
+          }
+        ]
       },
-      "pluginVersion": "12.0.0",
+      "pluginVersion": "13.2.0",
       "targets": [
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "tShT4yr4z"
+            "uid": "${dsProxmox}"
           },
-          "query": "phys = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"link_speed_max\")\n  |> keep(columns: [\"instance\"])\n  |> group()\n  |> distinct(column: \"instance\")\n  |> findColumn(fn: (key) => true, column: \"_value\")\n\nfrom(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] =~ /^ethtool_/)\n  |> filter(fn: (r) => contains(value: r.instance, set: phys))\n  |> last()\n  |> filter(fn: (r) => r._value > 0)\n  |> map(fn: (r) => ({ instance: r.instance, counter: r._field, value: r._value }))\n  |> group()\n  |> sort(columns: [\"instance\", \"counter\"])",
+          "query": "import \"strings\"\n\nphys = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"link_speed_max\")\n  |> keep(columns: [\"instance\"])\n  |> group()\n  |> distinct(column: \"instance\")\n  |> findColumn(fn: (key) => true, column: \"_value\")\n\nfrom(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] =~ /^ethtool_/)\n  |> filter(fn: (r) => contains(value: r.instance, set: phys))\n  |> last()\n  |> filter(fn: (r) => r._value > 0)\n  |> map(fn: (r) => ({ instance: r.instance, counter: strings.trimPrefix(v: r._field, prefix: \"ethtool_\"), value: r._value }))\n  |> group()\n  |> sort(columns: [\"instance\", \"counter\"])",
           "refId": "A"
         }
       ],
-      "title": "NIC Driver Counters - ethtool -S (non-zero, cumulative)",
+      "title": "Ethtool Counters (Since Boot)",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "indexByName": {
+              "counter": 1,
+              "instance": 0,
+              "value": 2
+            },
+            "renameByName": {}
+          }
+        }
+      ],
       "type": "table"
     },
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "tShT4yr4z"
+        "uid": "${dsProxmox}"
       },
+      "description": "How much each non-zero ethtool counter increased in each time interval (bars). A flat line at 0 = the counter is not growing (good). Yellow dashed line = 1, red dashed line = 100 new events per interval. Legend is sorted by Total (descending).",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1987,8 +3058,9 @@
             "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
-            "axisLabel": "",
+            "axisLabel": "New Events",
             "axisPlacement": "auto",
+            "axisSoftMax": 5,
             "barAlignment": 0,
             "barWidthFactor": 0.6,
             "drawStyle": "bars",
@@ -2007,51 +3079,63 @@
               "type": "linear"
             },
             "showPoints": "auto",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
               "mode": "none"
             },
             "thresholdsStyle": {
-              "mode": "off"
+              "mode": "dashed"
             }
           },
+          "decimals": 0,
           "displayName": "${__field.labels.series}",
           "mappings": [],
+          "min": 0,
+          "noValue": "No driver counter increased in this time range ✔",
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "transparent",
+                "value": 0
               },
               {
-                "color": "red",
+                "color": "#FADE2A",
                 "value": 1
+              },
+              {
+                "color": "#F2495C",
+                "value": 100
               }
             ]
           },
-          "decimals": 0,
-          "min": 0,
           "unit": "short"
         },
         "overrides": []
       },
       "gridPos": {
         "h": 10,
-        "w": 15,
-        "x": 9,
-        "y": 65
+        "w": 12,
+        "x": 12,
+        "y": 70
       },
       "id": 9999,
+      "interval": "1m",
+      "maxDataPoints": 200,
       "options": {
         "legend": {
           "calcs": [
             "sum",
-            "max"
+            "max",
+            "lastNotNull"
           ],
           "displayMode": "table",
-          "placement": "right",
-          "showLegend": true
+          "placement": "bottom",
+          "showLegend": true,
+          "sortBy": "Total",
+          "sortDesc": true
         },
         "tooltip": {
           "hideZeros": true,
@@ -2059,20 +3143,19 @@
           "sort": "desc"
         }
       },
-      "pluginVersion": "12.0.0",
+      "pluginVersion": "13.2.0",
       "targets": [
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "tShT4yr4z"
+            "uid": "${dsProxmox}"
           },
-          "query": "phys = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"link_speed_max\")\n  |> keep(columns: [\"instance\"])\n  |> group()\n  |> distinct(column: \"instance\")\n  |> findColumn(fn: (key) => true, column: \"_value\")\n\ndata = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] =~ /^ethtool_/)\n  |> filter(fn: (r) => contains(value: r.instance, set: phys))\n  |> group(columns: [\"instance\", \"_field\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> difference(nonNegative: true)\n  |> map(fn: (r) => ({ r with series: r.instance + \" \" + r._field }))\n  |> group(columns: [\"series\"], mode: \"by\")\n  |> keep(columns: [\"_time\", \"_value\", \"series\"])\n\nnz = data\n  |> sum()\n  |> filter(fn: (r) => r._value > 0)\n  |> keep(columns: [\"series\"])\n\njoin(tables: {d: data, n: nz}, on: [\"series\"])\n  |> keep(columns: [\"_time\", \"_value\", \"series\"])\n  |> group(columns: [\"series\"], mode: \"by\")\n  |> yield(name: \"delta\")",
+          "query": "import \"strings\"\n\nphys = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"link_speed_max\")\n  |> keep(columns: [\"instance\"])\n  |> group()\n  |> distinct(column: \"instance\")\n  |> findColumn(fn: (key) => true, column: \"_value\")\n\ndata = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] =~ /^ethtool_/)\n  |> filter(fn: (r) => contains(value: r.instance, set: phys))\n  |> group(columns: [\"instance\", \"_field\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> difference(nonNegative: true)\n  |> map(fn: (r) => ({ r with series: r.instance + \"  ·  \" + strings.trimPrefix(v: r._field, prefix: \"ethtool_\") }))\n  |> group(columns: [\"series\"], mode: \"by\")\n  |> keep(columns: [\"_time\", \"_value\", \"series\"])\n\nnz = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] =~ /^ethtool_/)\n  |> filter(fn: (r) => contains(value: r.instance, set: phys))\n  |> last()\n  |> filter(fn: (r) => r._value > 0)\n  |> map(fn: (r) => ({ series: r.instance + \"  ·  \" + strings.trimPrefix(v: r._field, prefix: \"ethtool_\") }))\n  |> group(columns: [\"series\"], mode: \"by\")\n\njoin(tables: {d: data, n: nz}, on: [\"series\"])\n  |> keep(columns: [\"_time\", \"_value\", \"series\"])\n  |> group(columns: [\"series\"], mode: \"by\")\n  |> yield(name: \"delta\")",
           "refId": "A"
         }
       ],
-      "title": "NIC Driver Counters - ethtool -S (new per interval)",
-      "type": "timeseries",
-      "description": "ethtool -S counters that increased in the selected time range (counters that stayed flat are hidden)."
+      "title": "Ethtool Counters (Per Interval)",
+      "type": "timeseries"
     },
     {
       "collapsed": false,
@@ -2080,11 +3163,11 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 248
+        "y": 80
       },
       "id": 49,
       "panels": [],
-      "title": "Cluster summary of Resources $server",
+      "title": "Cluster Resources — $server",
       "type": "row"
     },
     {
@@ -2103,6 +3186,9 @@
               "type": "auto"
             },
             "filterable": true,
+            "footer": {
+              "reducers": []
+            },
             "inspect": false
           },
           "mappings": [],
@@ -2110,7 +3196,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": 0
               },
               {
                 "color": "red",
@@ -2151,22 +3238,14 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 249
+        "y": 81
       },
       "id": 16,
       "options": {
         "cellHeight": "sm",
-        "footer": {
-          "countRows": false,
-          "fields": "",
-          "reducer": [
-            "sum"
-          ],
-          "show": false
-        },
         "showHeader": true
       },
-      "pluginVersion": "12.0.0",
+      "pluginVersion": "13.2.0",
       "targets": [
         {
           "datasource": {
@@ -2204,11 +3283,11 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 256
+        "y": 88
       },
       "id": 23,
       "panels": [],
-      "title": "Memory and CPU usage $server",
+      "title": "CPU & Memory — $server",
       "type": "row"
     },
     {
@@ -2245,6 +3324,7 @@
               "type": "linear"
             },
             "showPoints": "never",
+            "showValues": false,
             "spanNulls": true,
             "stacking": {
               "group": "A",
@@ -2260,7 +3340,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": 0
               },
               {
                 "color": "red",
@@ -2297,7 +3378,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 257
+        "y": 89
       },
       "id": 21,
       "options": {
@@ -2316,7 +3397,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.0.0",
+      "pluginVersion": "13.2.0",
       "targets": [
         {
           "datasource": {
@@ -2331,7 +3412,6 @@
             "type": "influxdb",
             "uid": "${dsProxmox}"
           },
-          "hide": false,
           "query": "from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\n  |> filter(fn: (r) =>\n    r._measurement == \"cpustat\" and\n    r._field == \"wait\"\n  )\n  |> filter(fn: (r) => r[\"host\"] =~ /${server:regex}/)\n  |> map(fn: (r) => ({\n        r with\n        _time: r._time,\n        _value: float(v: r._value) * float(v: 100)\n      })\n    )\n  |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)",
           "refId": "B"
         },
@@ -2340,12 +3420,11 @@
             "type": "influxdb",
             "uid": "${dsProxmox}"
           },
-          "hide": false,
           "query": "from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\n  |> filter(fn: (r) =>\n    r._measurement == \"cpustat\" and\n    r._field == \"avg1\"\n  )\n  |> filter(fn: (r) => r[\"host\"] =~ /${server:regex}/)\n  |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)",
           "refId": "C"
         }
       ],
-      "title": "Host CPU usage",
+      "title": "Host CPU Usage",
       "type": "timeseries"
     },
     {
@@ -2385,6 +3464,7 @@
               "type": "linear"
             },
             "showPoints": "never",
+            "showValues": false,
             "spanNulls": true,
             "stacking": {
               "group": "A",
@@ -2400,7 +3480,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": 0
               },
               {
                 "color": "red",
@@ -2416,7 +3497,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 257
+        "y": 89
       },
       "id": 24,
       "options": {
@@ -2435,7 +3516,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.0.0",
+      "pluginVersion": "13.2.0",
       "targets": [
         {
           "datasource": {
@@ -2446,7 +3527,7 @@
           "refId": "A"
         }
       ],
-      "title": "Host Memory",
+      "title": "Host Memory Usage",
       "type": "timeseries"
     },
     {
@@ -2483,6 +3564,7 @@
               "type": "linear"
             },
             "showPoints": "auto",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -2498,7 +3580,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": 0
               },
               {
                 "color": "red",
@@ -2513,7 +3596,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 266
+        "y": 98
       },
       "id": 26,
       "options": {
@@ -2532,7 +3615,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.0.0",
+      "pluginVersion": "13.2.0",
       "targets": [
         {
           "datasource": {
@@ -2543,7 +3626,7 @@
           "refId": "A"
         }
       ],
-      "title": "VM CPU usage",
+      "title": "VM CPU Usage",
       "type": "timeseries"
     },
     {
@@ -2580,6 +3663,7 @@
               "type": "linear"
             },
             "showPoints": "auto",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -2595,7 +3679,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": 0
               },
               {
                 "color": "red",
@@ -2611,7 +3696,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 266
+        "y": 98
       },
       "id": 27,
       "options": {
@@ -2632,7 +3717,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.0.0",
+      "pluginVersion": "13.2.0",
       "targets": [
         {
           "datasource": {
@@ -2643,7 +3728,7 @@
           "refId": "A"
         }
       ],
-      "title": "VM memory usage",
+      "title": "VM Memory Usage",
       "type": "timeseries"
     },
     {
@@ -2680,6 +3765,7 @@
               "type": "linear"
             },
             "showPoints": "auto",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -2695,7 +3781,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": 0
               },
               {
                 "color": "red",
@@ -2711,7 +3798,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 274
+        "y": 106
       },
       "id": 30,
       "options": {
@@ -2733,7 +3820,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.0.0",
+      "pluginVersion": "13.2.0",
       "targets": [
         {
           "datasource": {
@@ -2744,7 +3831,7 @@
           "refId": "A"
         }
       ],
-      "title": "VM I/O Read",
+      "title": "VM Disk Read",
       "type": "timeseries"
     },
     {
@@ -2781,6 +3868,7 @@
               "type": "linear"
             },
             "showPoints": "auto",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -2796,7 +3884,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": 0
               },
               {
                 "color": "red",
@@ -2812,7 +3901,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 274
+        "y": 106
       },
       "id": 31,
       "options": {
@@ -2834,7 +3923,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.0.0",
+      "pluginVersion": "13.2.0",
       "targets": [
         {
           "datasource": {
@@ -2845,7 +3934,7 @@
           "refId": "A"
         }
       ],
-      "title": "VMs I/O Write",
+      "title": "VM Disk Write",
       "type": "timeseries"
     },
     {
@@ -2882,6 +3971,7 @@
               "type": "linear"
             },
             "showPoints": "auto",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -2897,7 +3987,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": 0
               },
               {
                 "color": "red",
@@ -2913,7 +4004,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 282
+        "y": 114
       },
       "id": 34,
       "options": {
@@ -2932,7 +4023,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.0.0",
+      "pluginVersion": "13.2.0",
       "targets": [
         {
           "datasource": {
@@ -2943,7 +4034,7 @@
           "refId": "A"
         }
       ],
-      "title": "VM traffic In",
+      "title": "VM Network In",
       "type": "timeseries"
     },
     {
@@ -2980,6 +4071,7 @@
               "type": "linear"
             },
             "showPoints": "auto",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -2995,7 +4087,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": 0
               },
               {
                 "color": "red",
@@ -3011,7 +4104,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 282
+        "y": 114
       },
       "id": 35,
       "options": {
@@ -3030,7 +4123,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.0.0",
+      "pluginVersion": "13.2.0",
       "targets": [
         {
           "datasource": {
@@ -3041,21 +4134,18 @@
           "refId": "A"
         }
       ],
-      "title": "VM traffic out",
+      "title": "VM Network Out",
       "type": "timeseries"
     }
   ],
   "preload": false,
   "refresh": "5s",
-  "schemaVersion": 41,
+  "schemaVersion": 42,
   "tags": [],
   "templating": {
     "list": [
       {
-        "current": {
-          "text": "InfluxDB-16.31-fpt",
-          "value": "tShT4yr4z"
-        },
+        "current": {},
         "description": "Fluxlang Capable Datasouce",
         "includeAll": false,
         "label": "Datasource",
@@ -3063,17 +4153,14 @@
         "options": [],
         "query": "influxdb",
         "refresh": 1,
-        "regex": "InfluxDB-16.31-fpt",
+        "regex": "",
         "type": "datasource"
       },
       {
-        "current": {
-          "text": "proxmox-cluster-deco",
-          "value": "proxmox-cluster-deco"
-        },
+        "current": {},
         "datasource": {
           "type": "influxdb",
-          "uid": "tShT4yr4z"
+          "uid": "${dsProxmox}"
         },
         "definition": "buckets()",
         "includeAll": false,
@@ -3081,35 +4168,22 @@
         "options": [],
         "query": "buckets()",
         "refresh": 1,
-        "regex": "proxmox-cluster-deco",
+        "regex": "",
+        "regexApplyTo": "value",
         "type": "query"
       },
       {
         "current": {
           "text": [
-            "pve1",
-            "pve2",
-            "pve3",
-            "pve4",
-            "pve5",
-            "pve6",
-            "pve7",
-            "pve8"
+            "All"
           ],
           "value": [
-            "pve1",
-            "pve2",
-            "pve3",
-            "pve4",
-            "pve5",
-            "pve6",
-            "pve7",
-            "pve8"
+            "$__all"
           ]
         },
         "datasource": {
           "type": "influxdb",
-          "uid": "tShT4yr4z"
+          "uid": "${dsProxmox}"
         },
         "definition": "from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => \n    r._measurement == \"system\" and\n    r.object == \"nodes\"\n  )\n  |> keyValues(keyColumns: [\"host\"])\n  |> group()\n  |> keep(columns: [\"host\"])\n  |> distinct(column: \"host\")\n\n",
         "includeAll": true,
@@ -3120,6 +4194,7 @@
         "query": "from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => \n    r._measurement == \"system\" and\n    r.object == \"nodes\"\n  )\n  |> keyValues(keyColumns: [\"host\"])\n  |> group()\n  |> keep(columns: [\"host\"])\n  |> distinct(column: \"host\")\n\n",
         "refresh": 1,
         "regex": "",
+        "regexApplyTo": "value",
         "type": "query"
       }
     ]
@@ -3129,8 +4204,9 @@
     "to": "now"
   },
   "timepicker": {},
-  "timezone": "",
-  "title": "Proxmox Cluster Deco",
-  "version": 2,
-  "uid": "adpmc64"
+  "timezone": "Asia/Ho_Chi_Minh",
+  "title": "Proxmox Cluster Template",
+  "uid": "adpmc64",
+  "version": 1,
+  "weekStart": ""
 }
