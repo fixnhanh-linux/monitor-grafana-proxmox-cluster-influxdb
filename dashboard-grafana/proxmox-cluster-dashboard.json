@@ -1,0 +1,4212 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "datasource",
+          "uid": "grafana"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "target": {
+          "limit": 100,
+          "matchAny": false,
+          "tags": [],
+          "type": "dashboard"
+        },
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": true,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 18,
+      "panels": [],
+      "repeat": "server",
+      "title": "Summary — $server",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${dsProxmox}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 2,
+          "mappings": [],
+          "max": 1,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "#EAB839",
+                "value": 0.75
+              },
+              {
+                "color": "red",
+                "value": 0.8
+              }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 3,
+        "x": 0,
+        "y": 1
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "text": {},
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "13.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${dsProxmox}"
+          },
+          "query": "from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\n  |> filter(fn: (r) =>\n    r._measurement == \"cpustat\" and\n    r._field == \"cpu\"\n  )\n  |> filter(fn: (r) => r[\"host\"] == \"${server}\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean)",
+          "refId": "A"
+        }
+      ],
+      "title": "Server CPU",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${dsProxmox}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 3,
+        "y": 1
+      },
+      "id": 4,
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "text": {},
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "13.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${dsProxmox}"
+          },
+          "query": "from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\n  |> filter(fn: (r) =>\n    r._measurement == \"cpustat\" and\n    r._field == \"cpus\"\n  )\n  |> filter(fn: (r) => r[\"host\"] == \"${server}\")\n  |> limit(n:1)",
+          "refId": "A"
+        }
+      ],
+      "title": "Logical Cores",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${dsProxmox}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 6,
+        "y": 1
+      },
+      "id": 8,
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "text": {},
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "13.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${dsProxmox}"
+          },
+          "query": "from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\n  |> filter(fn: (r) =>\n    r._measurement == \"memory\" and\n    r._field == \"memtotal\"\n  )\n  |> filter(fn: (r) => r[\"host\"] == \"${server}\")\n  |> limit(n:1)",
+          "refId": "A"
+        }
+      ],
+      "title": "Total Memory",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${dsProxmox}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 2,
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "yellow",
+                "value": 10
+              },
+              {
+                "color": "orange",
+                "value": 30
+              },
+              {
+                "color": "red",
+                "value": 70
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 9,
+        "y": 1
+      },
+      "id": 9,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "13.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${dsProxmox}"
+          },
+          "query": "from(bucket: \"${Bucket}\")\r\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\r\n  |> filter(fn: (r) => r._measurement == \"memory\" and (r._field == \"swapused\" or r._field == \"swaptotal\"))\r\n  |> filter(fn: (r) => r[\"host\"] == \"${server}\")\r\n  |> last()\r\n  |> pivot(rowKey:[\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\r\n  |> map(fn: (r) => ({ \r\n      _time: r._time, \r\n      _value: if r.swaptotal > 0 then (float(v: r.swapused) / float(v: r.swaptotal)) * 100.0 else 0.0 \r\n    }))\r\n  |> keep(columns: [\"_value\"])",
+          "refId": "A"
+        }
+      ],
+      "title": "Swap Usage",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${dsProxmox}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 2,
+          "mappings": [],
+          "max": 1,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "#EAB839",
+                "value": 0.5
+              },
+              {
+                "color": "red",
+                "value": 0.75
+              }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 3,
+        "x": 12,
+        "y": 1
+      },
+      "id": 12,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "text": {},
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "13.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${dsProxmox}"
+          },
+          "query": "from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\n  |> filter(fn: (r) =>\n    r._measurement == \"cpustat\" and\n    r._field == \"wait\"\n  )\n  |> filter(fn: (r) => r[\"host\"] == \"${server}\")\n  |> aggregateWindow(every: v.windowPeriod, fn:mean, createEmpty: false)",
+          "refId": "A"
+        }
+      ],
+      "title": "I/O Wait",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${dsProxmox}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "displayName": "${__field.labels.host} (${__field.labels.type})",
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 9,
+        "x": 15,
+        "y": 1
+      },
+      "id": 14,
+      "options": {
+        "displayMode": "gradient",
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "maxVizHeight": 300,
+        "minVizHeight": 10,
+        "minVizWidth": 0,
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "text": {},
+        "valueMode": "color"
+      },
+      "pluginVersion": "13.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${dsProxmox}"
+          },
+          "query": "from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"system\")\n  |> filter(fn: (r) => r._field == \"avail\" or r._field == \"used\")\n  |> filter(fn: (r) => r[\"nodename\"] == \"${server}\")\n  |> last()\n  |> pivot(rowKey:[\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> map(fn: (r) => ({ r with \n    _time: r._time,\n    _measurement: r.measurement,\n    _field: \"used_perc\",\n    _value: float(v: 100) / (float(v: r.avail) + float(v: r.used)) * float(v:r.used)\n     }))\n  |> drop(columns: [\"avail\",\"used\"])\n",
+          "refId": "A"
+        }
+      ],
+      "title": "Storage Pools",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${dsProxmox}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 2,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 3,
+        "y": 4
+      },
+      "id": 6,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "text": {},
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "13.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${dsProxmox}"
+          },
+          "query": "from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\n  |> filter(fn: (r) =>\n    r._measurement == \"cpustat\" and\n    r._field == \"avg1\"\n  )\n  |> filter(fn: (r) => r[\"host\"] == \"${server}\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n",
+          "refId": "A"
+        }
+      ],
+      "title": "Load Average (1m)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${dsProxmox}"
+      },
+      "description": "Memory in use by Host OS, VM's and Containers",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 2,
+          "mappings": [],
+          "max": 64,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "#EAB839",
+                "value": 500
+              },
+              {
+                "color": "red",
+                "value": 800
+              }
+            ]
+          },
+          "unit": "gbytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 6,
+        "y": 4
+      },
+      "id": 10,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "text": {},
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "13.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${dsProxmox}"
+          },
+          "query": "from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\n  |> filter(fn: (r) =>\n    r._measurement == \"memory\" and\n    r._field == \"memused\"\n  )\n  |> filter(fn: (r) => r[\"host\"] == \"${server}\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> map(fn: (r) => ({\n        r with\n        _value: float(v: r._value) / 1073741824.0\n      })\n    )\n  |> last()",
+          "refId": "A"
+        }
+      ],
+      "title": "Memory Used",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${dsProxmox}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 9,
+        "y": 4
+      },
+      "id": 52,
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "text": {},
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "13.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${dsProxmox}"
+          },
+          "query": "from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\n  |> filter(fn: (r) =>\n    r._measurement == \"memory\" and\n    r._field == \"memfree\"\n  )\n  |> filter(fn: (r) => r[\"host\"] == \"${server}\")\n  |> limit(n:1)",
+          "refId": "A"
+        }
+      ],
+      "title": "Memory Free",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${dsProxmox}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "dark-red",
+                "value": 0
+              },
+              {
+                "color": "dark-green",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 4,
+        "x": 0,
+        "y": 7
+      },
+      "id": 9991,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "13.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${dsProxmox}"
+          },
+          "query": "from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"system\")\n  |> filter(fn: (r) => r[\"_field\"] == \"corosync_conn\")\n  |> filter(fn: (r) => r[\"host\"] == \"${server}\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> yield(name: \"last\")",
+          "refId": "A"
+        }
+      ],
+      "title": "Corosync Connections",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${dsProxmox}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "dark-green",
+                "value": 0
+              },
+              {
+                "color": "dark-red",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 4,
+        "x": 4,
+        "y": 7
+      },
+      "id": 9992,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "13.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${dsProxmox}"
+          },
+          "query": "from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"system\")\n  |> filter(fn: (r) => r[\"_field\"] == \"udp_loss\")\n  |> filter(fn: (r) => r[\"host\"] == \"${server}\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> yield(name: \"last\")",
+          "refId": "A"
+        }
+      ],
+      "title": "UDP Packet Loss",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${dsProxmox}"
+      },
+      "description": "One row per physical NIC (≥10G). [xxG] = max speed of the card.\n✔ green \"UP 10G\" = link up, no errors\n⚠ yellow \"UP · 1–99 Errors\" = link up but new RX/TX errors in that interval\n▲ orange \"UP · 100–999 Errors\" / UP below 10G\n⛔ red \"UP · 1K+ Errors\" or \"DOWN\" = link down / severe errors\nErrors counted: CRC, Length, Missed, Overrun, FIFO, Frame, Carrier, Aborted, Heartbeat, Window, Collisions. See \"NIC RX/TX Errors (Per Interval)\" for details.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "#808080",
+            "mode": "fixed"
+          },
+          "custom": {
+            "axisPlacement": "auto",
+            "fillOpacity": 85,
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineWidth": 1,
+            "spanNulls": false
+          },
+          "decimals": 1,
+          "displayName": "${__field.labels.nic}",
+          "mappings": [
+            {
+              "options": {
+                "from": -1,
+                "result": {
+                  "color": "#C4162A",
+                  "index": 0,
+                  "text": "⛔ DOWN"
+                },
+                "to": 0.5
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 0.5,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 1,
+                  "text": "✔ UP"
+                },
+                "to": 1.5
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 99.95,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 2,
+                  "text": "✔ UP 100M"
+                },
+                "to": 100.05
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 100.05,
+                "result": {
+                  "color": "#FADE2A",
+                  "index": 3,
+                  "text": "⚠ UP 100M · 1–99 Errors"
+                },
+                "to": 100.15
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 100.15,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 4,
+                  "text": "▲ UP 100M · 100–999 Errors"
+                },
+                "to": 100.25
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 100.25,
+                "result": {
+                  "color": "#F2495C",
+                  "index": 5,
+                  "text": "⛔ UP 100M · 1K+ Errors"
+                },
+                "to": 100.35
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 999.95,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 6,
+                  "text": "✔ UP 1G"
+                },
+                "to": 1000.05
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 1000.05,
+                "result": {
+                  "color": "#FADE2A",
+                  "index": 7,
+                  "text": "⚠ UP 1G · 1–99 Errors"
+                },
+                "to": 1000.15
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 1000.15,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 8,
+                  "text": "▲ UP 1G · 100–999 Errors"
+                },
+                "to": 1000.25
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 1000.25,
+                "result": {
+                  "color": "#F2495C",
+                  "index": 9,
+                  "text": "⛔ UP 1G · 1K+ Errors"
+                },
+                "to": 1000.35
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 2499.95,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 10,
+                  "text": "✔ UP 2.5G"
+                },
+                "to": 2500.05
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 2500.05,
+                "result": {
+                  "color": "#FADE2A",
+                  "index": 11,
+                  "text": "⚠ UP 2.5G · 1–99 Errors"
+                },
+                "to": 2500.15
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 2500.15,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 12,
+                  "text": "▲ UP 2.5G · 100–999 Errors"
+                },
+                "to": 2500.25
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 2500.25,
+                "result": {
+                  "color": "#F2495C",
+                  "index": 13,
+                  "text": "⛔ UP 2.5G · 1K+ Errors"
+                },
+                "to": 2500.35
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 4999.95,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 14,
+                  "text": "✔ UP 5G"
+                },
+                "to": 5000.05
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 5000.05,
+                "result": {
+                  "color": "#FADE2A",
+                  "index": 15,
+                  "text": "⚠ UP 5G · 1–99 Errors"
+                },
+                "to": 5000.15
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 5000.15,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 16,
+                  "text": "▲ UP 5G · 100–999 Errors"
+                },
+                "to": 5000.25
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 5000.25,
+                "result": {
+                  "color": "#F2495C",
+                  "index": 17,
+                  "text": "⛔ UP 5G · 1K+ Errors"
+                },
+                "to": 5000.35
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 9999.95,
+                "result": {
+                  "color": "#56A64B",
+                  "index": 18,
+                  "text": "✔ UP 10G"
+                },
+                "to": 10000.05
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 10000.05,
+                "result": {
+                  "color": "#FADE2A",
+                  "index": 19,
+                  "text": "⚠ UP 10G · 1–99 Errors"
+                },
+                "to": 10000.15
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 10000.15,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 20,
+                  "text": "▲ UP 10G · 100–999 Errors"
+                },
+                "to": 10000.25
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 10000.25,
+                "result": {
+                  "color": "#F2495C",
+                  "index": 21,
+                  "text": "⛔ UP 10G · 1K+ Errors"
+                },
+                "to": 10000.35
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 24999.95,
+                "result": {
+                  "color": "#56A64B",
+                  "index": 22,
+                  "text": "✔ UP 25G"
+                },
+                "to": 25000.05
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 25000.05,
+                "result": {
+                  "color": "#FADE2A",
+                  "index": 23,
+                  "text": "⚠ UP 25G · 1–99 Errors"
+                },
+                "to": 25000.15
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 25000.15,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 24,
+                  "text": "▲ UP 25G · 100–999 Errors"
+                },
+                "to": 25000.25
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 25000.25,
+                "result": {
+                  "color": "#F2495C",
+                  "index": 25,
+                  "text": "⛔ UP 25G · 1K+ Errors"
+                },
+                "to": 25000.35
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 39999.95,
+                "result": {
+                  "color": "#56A64B",
+                  "index": 26,
+                  "text": "✔ UP 40G"
+                },
+                "to": 40000.05
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 40000.05,
+                "result": {
+                  "color": "#FADE2A",
+                  "index": 27,
+                  "text": "⚠ UP 40G · 1–99 Errors"
+                },
+                "to": 40000.15
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 40000.15,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 28,
+                  "text": "▲ UP 40G · 100–999 Errors"
+                },
+                "to": 40000.25
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 40000.25,
+                "result": {
+                  "color": "#F2495C",
+                  "index": 29,
+                  "text": "⛔ UP 40G · 1K+ Errors"
+                },
+                "to": 40000.35
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 49999.95,
+                "result": {
+                  "color": "#56A64B",
+                  "index": 30,
+                  "text": "✔ UP 50G"
+                },
+                "to": 50000.05
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 50000.05,
+                "result": {
+                  "color": "#FADE2A",
+                  "index": 31,
+                  "text": "⚠ UP 50G · 1–99 Errors"
+                },
+                "to": 50000.15
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 50000.15,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 32,
+                  "text": "▲ UP 50G · 100–999 Errors"
+                },
+                "to": 50000.25
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 50000.25,
+                "result": {
+                  "color": "#F2495C",
+                  "index": 33,
+                  "text": "⛔ UP 50G · 1K+ Errors"
+                },
+                "to": 50000.35
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 99999.95,
+                "result": {
+                  "color": "#56A64B",
+                  "index": 34,
+                  "text": "✔ UP 100G"
+                },
+                "to": 100000.05
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 100000.05,
+                "result": {
+                  "color": "#FADE2A",
+                  "index": 35,
+                  "text": "⚠ UP 100G · 1–99 Errors"
+                },
+                "to": 100000.15
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 100000.15,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 36,
+                  "text": "▲ UP 100G · 100–999 Errors"
+                },
+                "to": 100000.25
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 100000.25,
+                "result": {
+                  "color": "#F2495C",
+                  "index": 37,
+                  "text": "⛔ UP 100G · 1K+ Errors"
+                },
+                "to": 100000.35
+              },
+              "type": "range"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#C4162A",
+                "value": 0
+              },
+              {
+                "color": "#FF9830",
+                "value": 0.5
+              },
+              {
+                "color": "#56A64B",
+                "value": 10000
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 16,
+        "x": 8,
+        "y": 7
+      },
+      "id": 10001,
+      "interval": "1m",
+      "options": {
+        "alignValue": "center",
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "mergeValues": true,
+        "rowHeight": 0.7,
+        "showValue": "always",
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "13.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${dsProxmox}"
+          },
+          "query": "import \"join\"\n\nphys = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"link_speed_max\")\n  |> keep(columns: [\"instance\"])\n  |> group()\n  |> distinct(column: \"instance\")\n  |> findColumn(fn: (key) => true, column: \"_value\")\n\nlink = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"network_up\" or r[\"_field\"] == \"link_speed\" or r[\"_field\"] == \"link_speed_max\")\n  |> filter(fn: (r) => contains(value: r.instance, set: phys))\n  |> group(columns: [\"instance\", \"_field\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> group(columns: [\"instance\"], mode: \"by\")\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> sort(columns: [\"_time\"])\n  |> fill(column: \"link_speed_max\", usePrevious: true)\n  |> filter(fn: (r) => exists r.link_speed_max and r.link_speed_max >= 10000.0)\n  |> map(fn: (r) => ({ _time: r._time, instance: r.instance, mx: r.link_speed_max,\n      lv: if exists r.network_up and r.network_up == 1.0\n          then (if exists r.link_speed and r.link_speed > 0.0 then r.link_speed else 1.0) else 0.0 }))\n  |> group()\n\nerr = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] =~ /^(rx_crc_errors|rx_length_errors|rx_missed_errors|rx_over_errors|rx_fifo_errors|rx_frame_errors|tx_carrier_errors|tx_aborted_errors|tx_fifo_errors|tx_heartbeat_errors|tx_window_errors|collisions)$/)\n  |> filter(fn: (r) => contains(value: r.instance, set: phys))\n  |> group(columns: [\"instance\", \"_field\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> difference(nonNegative: true)\n  |> group(columns: [\"instance\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: sum, createEmpty: false)\n  |> map(fn: (r) => ({ _time: r._time, instance: r.instance, ev: r._value }))\n  |> group()\n\njoin.left(left: link, right: err,\n    on: (l, r) => l._time == r._time and l.instance == r.instance,\n    as: (l, r) => {\n        e = if exists r.ev then r.ev else 0.0\n        b = if e >= 1000.0 then 0.3 else if e >= 100.0 then 0.2 else if e >= 1.0 then 0.1 else 0.0\n        return { _time: l._time, nic: l.instance + \" [\" + string(v: l.mx / 1000.0) + \"G]\",\n                 _value: if l.lv == 0.0 then 0.0 else l.lv + b }\n    })\n  |> group(columns: [\"nic\"], mode: \"by\")\n  |> sort(columns: [\"_time\"])\n  |> yield(name: \"status\")",
+          "refId": "A"
+        }
+      ],
+      "title": "NIC Link Status (10G+)",
+      "type": "state-timeline"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${dsProxmox}"
+      },
+      "description": "Negotiated link speed of each physical NIC over time. Flat line = stable. Drop to 0 = link DOWN. Step down = speed renegotiated (e.g. 10G → 1G). Green dashed line = 10G target. [xxG] = max speed of the card. Min column: if it shows 0, the link went down in the selected time range.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "axisSoftMax": 12000,
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "stepAfter",
+            "lineWidth": 3,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "showValues": false,
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "dashed"
+            }
+          },
+          "decimals": 0,
+          "displayName": "${__field.labels.nic}",
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "transparent",
+                "value": 0
+              },
+              {
+                "color": "#56A64B",
+                "value": 10000
+              }
+            ]
+          },
+          "unit": "Mbits"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 13
+      },
+      "id": 20030,
+      "interval": "1m",
+      "options": {
+        "legend": {
+          "calcs": [
+            "min",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "width": 300
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "13.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${dsProxmox}"
+          },
+          "query": "import \"join\"\n\nphys = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"link_speed_max\")\n  |> keep(columns: [\"instance\"])\n  |> group()\n  |> distinct(column: \"instance\")\n  |> findColumn(fn: (key) => true, column: \"_value\")\n\nlink = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"network_up\" or r[\"_field\"] == \"link_speed\" or r[\"_field\"] == \"link_speed_max\")\n  |> filter(fn: (r) => contains(value: r.instance, set: phys))\n  |> group(columns: [\"instance\", \"_field\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> group(columns: [\"instance\"], mode: \"by\")\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> sort(columns: [\"_time\"])\n  |> fill(column: \"link_speed_max\", usePrevious: true)\n  |> filter(fn: (r) => exists r.link_speed_max and r.link_speed_max >= 10000.0)\n  |> map(fn: (r) => ({ _time: r._time, instance: r.instance, mx: r.link_speed_max,\n      lv: if exists r.network_up and r.network_up == 1.0\n          then (if exists r.link_speed and r.link_speed > 0.0 then r.link_speed else 1.0) else 0.0 }))\n  |> group()\n\nerr = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] =~ /^(rx_crc_errors|rx_length_errors|rx_missed_errors|rx_over_errors|rx_fifo_errors|rx_frame_errors|tx_carrier_errors|tx_aborted_errors|tx_fifo_errors|tx_heartbeat_errors|tx_window_errors|collisions)$/)\n  |> filter(fn: (r) => contains(value: r.instance, set: phys))\n  |> group(columns: [\"instance\", \"_field\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> difference(nonNegative: true)\n  |> group(columns: [\"instance\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: sum, createEmpty: false)\n  |> map(fn: (r) => ({ _time: r._time, instance: r.instance, ev: r._value }))\n  |> group()\n\nlink\n  |> map(fn: (r) => ({ _time: r._time, nic: r.instance + \" [\" + string(v: r.mx / 1000.0) + \"G]\", _value: r.lv }))\n  |> group(columns: [\"nic\"], mode: \"by\")\n  |> yield(name: \"speed\")",
+          "refId": "A"
+        }
+      ],
+      "title": "NIC Link Speed",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${dsProxmox}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 2,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "yellow",
+                "value": 10
+              },
+              {
+                "color": "orange",
+                "value": 30
+              },
+              {
+                "color": "red",
+                "value": 70
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "SwapUsage"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Swap Usage (%)"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "UsedGB"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Used Swap"
+              },
+              {
+                "id": "unit",
+                "value": "decbytes"
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              },
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 20
+      },
+      "id": 50,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "13.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${dsProxmox}"
+          },
+          "query": "from(bucket: \"${Bucket}\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r._measurement == \"memory\" and (r._field == \"swapused\" or r._field == \"swaptotal\"))\r\n  |> filter(fn: (r) => r[\"host\"] == \"${server}\")\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> pivot(rowKey:[\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\r\n  |> map(fn: (r) => ({\r\n      _time: r._time,\r\n      \"SwapUsage\": if r.swaptotal > 0 then (float(v: r.swapused) / float(v: r.swaptotal)) * 100.0 else 0.0,\r\n      \"UsedGB\": float(v: r.swapused)\r\n    }))",
+          "refId": "A"
+        }
+      ],
+      "title": "Swap Usage History",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${dsProxmox}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "displayName": "${__field.labels.instance}",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 24,
+        "x": 0,
+        "y": 28
+      },
+      "id": 9993,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "13.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${dsProxmox}"
+          },
+          "query": "from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\")\n  |> filter(fn: (r) => r[\"_field\"] == \"hardware_drop\")\n  |> filter(fn: (r) => r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"instance\"] !~ /^(lo|tap.*|veth.*|fwbr.*|fwpr.*|fwln.*|vmbr.*|bond.*)$/)\n  |> group(columns: [\"host\", \"instance\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> yield(name: \"last\")",
+          "refId": "A"
+        }
+      ],
+      "title": "Hardware RX Drops (Cumulative)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${dsProxmox}"
+      },
+      "description": "Link state and traffic counters accumulated since boot (ip -s link). Speed: 🟩 ≥10G · 🟧 1–9G · 🟥 <1G / DOWN.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "center",
+            "cellOptions": {
+              "mode": "basic",
+              "type": "color-background"
+            },
+            "footer": {
+              "reducers": []
+            },
+            "inspect": false,
+            "minWidth": 50
+          },
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "transparent",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "instance"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "auto"
+                }
+              },
+              {
+                "id": "custom.align",
+                "value": "left"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "network_up"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "0": {
+                        "color": "#C4162A",
+                        "index": 0,
+                        "text": "⛔ DOWN"
+                      },
+                      "1": {
+                        "color": "#56A64B",
+                        "index": 1,
+                        "text": "✔ UP"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "gradient",
+                  "type": "color-background"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "link_speed"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "0": {
+                        "color": "#C4162A",
+                        "index": 0,
+                        "text": "⛔ DOWN"
+                      },
+                      "100": {
+                        "color": "#F2495C",
+                        "index": 1,
+                        "text": "100M"
+                      },
+                      "1000": {
+                        "color": "#FF9830",
+                        "index": 2,
+                        "text": "1G"
+                      },
+                      "2500": {
+                        "color": "#FF9830",
+                        "index": 3,
+                        "text": "2.5G"
+                      },
+                      "5000": {
+                        "color": "#FF9830",
+                        "index": 4,
+                        "text": "5G"
+                      },
+                      "10000": {
+                        "color": "#56A64B",
+                        "index": 5,
+                        "text": "10G"
+                      },
+                      "25000": {
+                        "color": "#56A64B",
+                        "index": 6,
+                        "text": "25G"
+                      },
+                      "40000": {
+                        "color": "#56A64B",
+                        "index": 7,
+                        "text": "40G"
+                      },
+                      "50000": {
+                        "color": "#56A64B",
+                        "index": 8,
+                        "text": "50G"
+                      },
+                      "100000": {
+                        "color": "#56A64B",
+                        "index": 9,
+                        "text": "100G"
+                      }
+                    },
+                    "type": "value"
+                  },
+                  {
+                    "options": {
+                      "from": 1,
+                      "result": {
+                        "color": "#F2495C",
+                        "index": 20
+                      },
+                      "to": 999.99
+                    },
+                    "type": "range"
+                  },
+                  {
+                    "options": {
+                      "from": 1000,
+                      "result": {
+                        "color": "#FF9830",
+                        "index": 21
+                      },
+                      "to": 9999.99
+                    },
+                    "type": "range"
+                  },
+                  {
+                    "options": {
+                      "from": 10000,
+                      "result": {
+                        "color": "#56A64B",
+                        "index": 22
+                      },
+                      "to": 1000000000000
+                    },
+                    "type": "range"
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "gradient",
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "link_speed_max"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "0": {
+                        "color": "red",
+                        "index": 0,
+                        "text": "DOWN"
+                      },
+                      "100": {
+                        "index": 1,
+                        "text": "100M"
+                      },
+                      "1000": {
+                        "index": 2,
+                        "text": "1G"
+                      },
+                      "2500": {
+                        "index": 3,
+                        "text": "2.5G"
+                      },
+                      "5000": {
+                        "index": 4,
+                        "text": "5G"
+                      },
+                      "10000": {
+                        "index": 5,
+                        "text": "10G"
+                      },
+                      "25000": {
+                        "index": 6,
+                        "text": "25G"
+                      },
+                      "40000": {
+                        "index": 7,
+                        "text": "40G"
+                      },
+                      "50000": {
+                        "index": 8,
+                        "text": "50G"
+                      },
+                      "100000": {
+                        "index": 9,
+                        "text": "100G"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "text",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "rx_packets"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "auto"
+                }
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "tx_packets"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "auto"
+                }
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "multicast"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "auto"
+                }
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "rx_bytes"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "decbytes"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#5794F2",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "tx_bytes"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "decbytes"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#B877D9",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 24,
+        "x": 0,
+        "y": 39
+      },
+      "id": 9995,
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "RX Errors"
+          }
+        ]
+      },
+      "pluginVersion": "13.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${dsProxmox}"
+          },
+          "query": "phys = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"link_speed_max\")\n  |> keep(columns: [\"instance\"])\n  |> group()\n  |> distinct(column: \"instance\")\n  |> findColumn(fn: (key) => true, column: \"_value\")\n\nfrom(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] =~ /^(network_up|link_speed|link_speed_max|rx_errors|rx_crc_errors|rx_length_errors|rx_missed_errors|rx_dropped|rx_over_errors|rx_fifo_errors|rx_frame_errors|rx_nohandler|tx_errors|tx_dropped|tx_carrier_errors|tx_aborted_errors|tx_fifo_errors|tx_heartbeat_errors|tx_window_errors|collisions|multicast|rx_bytes|tx_bytes|rx_packets|tx_packets)$/)\n  |> filter(fn: (r) => contains(value: r.instance, set: phys))\n  |> last()\n  |> keep(columns: [\"instance\", \"_field\", \"_value\"])\n  |> group()\n  |> pivot(rowKey: [\"instance\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> sort(columns: [\"instance\"])",
+          "refId": "A"
+        }
+      ],
+      "title": "NIC Link & Traffic (Since Boot)",
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "instance",
+                "link_speed",
+                "link_speed_max",
+                "multicast",
+                "network_up",
+                "rx_bytes",
+                "rx_packets",
+                "tx_bytes",
+                "tx_packets"
+              ]
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "collisions": true,
+              "rx_crc_errors": true,
+              "rx_dropped": true,
+              "rx_errors": true,
+              "rx_fifo_errors": true,
+              "rx_frame_errors": true,
+              "rx_length_errors": true,
+              "rx_missed_errors": true,
+              "rx_nohandler": true,
+              "rx_over_errors": true,
+              "tx_aborted_errors": true,
+              "tx_carrier_errors": true,
+              "tx_dropped": true,
+              "tx_errors": true,
+              "tx_fifo_errors": true,
+              "tx_heartbeat_errors": true,
+              "tx_window_errors": true
+            },
+            "indexByName": {
+              "instance": 0,
+              "link_speed": 2,
+              "link_speed_max": 3,
+              "multicast": 8,
+              "network_up": 1,
+              "rx_bytes": 4,
+              "rx_packets": 6,
+              "tx_bytes": 5,
+              "tx_packets": 7
+            },
+            "renameByName": {
+              "collisions": "Collisions",
+              "instance": "Interface",
+              "link_speed": "Speed",
+              "link_speed_max": "Max Speed",
+              "multicast": "RX Multicast",
+              "network_up": "Link",
+              "rx_bytes": "RX Bytes",
+              "rx_crc_errors": "RX CRC Errors",
+              "rx_dropped": "RX Dropped",
+              "rx_errors": "RX Errors",
+              "rx_fifo_errors": "RX FIFO Errors",
+              "rx_frame_errors": "RX Frame Errors",
+              "rx_length_errors": "RX Length Errors",
+              "rx_missed_errors": "RX Missed",
+              "rx_nohandler": "RX No Handler",
+              "rx_over_errors": "RX Overrun",
+              "rx_packets": "RX Packets",
+              "tx_aborted_errors": "TX Aborted",
+              "tx_bytes": "TX Bytes",
+              "tx_carrier_errors": "TX Carrier Errors",
+              "tx_dropped": "TX Dropped",
+              "tx_errors": "TX Errors",
+              "tx_fifo_errors": "TX FIFO Errors",
+              "tx_heartbeat_errors": "TX Heartbeat Errors",
+              "tx_packets": "TX Packets",
+              "tx_window_errors": "TX Window Errors"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${dsProxmox}"
+      },
+      "description": "RX error counters accumulated since boot (ip -s link). Alert levels: 🟩 0 = OK · 🟨 1–99 = attention · 🟧 100–999 = warning · 🟥 1,000–9,999 = critical · dark red ≥10,000 = severe.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "center",
+            "cellOptions": {
+              "applyToRow": false,
+              "mode": "basic",
+              "type": "color-background",
+              "wrapText": false
+            },
+            "footer": {
+              "reducers": []
+            },
+            "inspect": false,
+            "minWidth": 50
+          },
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgba(86,166,75,0.30)",
+                "value": 0
+              },
+              {
+                "color": "#FADE2A",
+                "value": 1
+              },
+              {
+                "color": "#FF9830",
+                "value": 100
+              },
+              {
+                "color": "#F2495C",
+                "value": 1000
+              },
+              {
+                "color": "#C4162A",
+                "value": 10000
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "instance"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "auto"
+                }
+              },
+              {
+                "id": "custom.align",
+                "value": "left"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "rx_errors"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "gradient",
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 110
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 24,
+        "x": 0,
+        "y": 44
+      },
+      "id": 20010,
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "RX Errors"
+          }
+        ]
+      },
+      "pluginVersion": "13.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${dsProxmox}"
+          },
+          "query": "phys = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"link_speed_max\")\n  |> keep(columns: [\"instance\"])\n  |> group()\n  |> distinct(column: \"instance\")\n  |> findColumn(fn: (key) => true, column: \"_value\")\n\nfrom(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] =~ /^(network_up|link_speed|link_speed_max|rx_errors|rx_crc_errors|rx_length_errors|rx_missed_errors|rx_dropped|rx_over_errors|rx_fifo_errors|rx_frame_errors|rx_nohandler|tx_errors|tx_dropped|tx_carrier_errors|tx_aborted_errors|tx_fifo_errors|tx_heartbeat_errors|tx_window_errors|collisions|multicast|rx_bytes|tx_bytes|rx_packets|tx_packets)$/)\n  |> filter(fn: (r) => contains(value: r.instance, set: phys))\n  |> last()\n  |> keep(columns: [\"instance\", \"_field\", \"_value\"])\n  |> group()\n  |> pivot(rowKey: [\"instance\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> sort(columns: [\"instance\"])",
+          "refId": "A"
+        }
+      ],
+      "title": "NIC RX Errors (Since Boot)",
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "instance",
+                "rx_crc_errors",
+                "rx_dropped",
+                "rx_errors",
+                "rx_fifo_errors",
+                "rx_frame_errors",
+                "rx_length_errors",
+                "rx_missed_errors",
+                "rx_nohandler",
+                "rx_over_errors"
+              ]
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "collisions": true,
+              "link_speed": true,
+              "link_speed_max": true,
+              "multicast": true,
+              "network_up": true,
+              "rx_bytes": true,
+              "rx_packets": true,
+              "tx_aborted_errors": true,
+              "tx_bytes": true,
+              "tx_carrier_errors": true,
+              "tx_dropped": true,
+              "tx_errors": true,
+              "tx_fifo_errors": true,
+              "tx_heartbeat_errors": true,
+              "tx_packets": true,
+              "tx_window_errors": true
+            },
+            "indexByName": {
+              "instance": 0,
+              "rx_crc_errors": 2,
+              "rx_dropped": 5,
+              "rx_errors": 1,
+              "rx_fifo_errors": 7,
+              "rx_frame_errors": 8,
+              "rx_length_errors": 3,
+              "rx_missed_errors": 4,
+              "rx_nohandler": 9,
+              "rx_over_errors": 6
+            },
+            "renameByName": {
+              "collisions": "Collisions",
+              "instance": "Interface",
+              "link_speed": "Speed",
+              "link_speed_max": "Max Speed",
+              "multicast": "RX Multicast",
+              "network_up": "Link",
+              "rx_bytes": "RX Bytes",
+              "rx_crc_errors": "CRC",
+              "rx_dropped": "Dropped",
+              "rx_errors": "Errors",
+              "rx_fifo_errors": "FIFO",
+              "rx_frame_errors": "Frame",
+              "rx_length_errors": "Length",
+              "rx_missed_errors": "Missed",
+              "rx_nohandler": "No Handler",
+              "rx_over_errors": "Overrun",
+              "rx_packets": "RX Packets",
+              "tx_aborted_errors": "TX Aborted",
+              "tx_bytes": "TX Bytes",
+              "tx_carrier_errors": "TX Carrier Errors",
+              "tx_dropped": "TX Dropped",
+              "tx_errors": "TX Errors",
+              "tx_fifo_errors": "TX FIFO Errors",
+              "tx_heartbeat_errors": "TX Heartbeat Errors",
+              "tx_packets": "TX Packets",
+              "tx_window_errors": "TX Window Errors"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${dsProxmox}"
+      },
+      "description": "TX error counters accumulated since boot (ip -s link). Alert levels: 🟩 0 = OK · 🟨 1–99 = attention · 🟧 100–999 = warning · 🟥 1,000–9,999 = critical · dark red ≥10,000 = severe.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "center",
+            "cellOptions": {
+              "applyToRow": false,
+              "mode": "basic",
+              "type": "color-background",
+              "wrapText": false
+            },
+            "footer": {
+              "reducers": []
+            },
+            "inspect": false,
+            "minWidth": 50
+          },
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgba(86,166,75,0.30)",
+                "value": 0
+              },
+              {
+                "color": "#FADE2A",
+                "value": 1
+              },
+              {
+                "color": "#FF9830",
+                "value": 100
+              },
+              {
+                "color": "#F2495C",
+                "value": 1000
+              },
+              {
+                "color": "#C4162A",
+                "value": 10000
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "instance"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "auto"
+                }
+              },
+              {
+                "id": "custom.align",
+                "value": "left"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "tx_errors"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "gradient",
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 110
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 24,
+        "x": 0,
+        "y": 49
+      },
+      "id": 20011,
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "RX Errors"
+          }
+        ]
+      },
+      "pluginVersion": "13.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${dsProxmox}"
+          },
+          "query": "phys = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"link_speed_max\")\n  |> keep(columns: [\"instance\"])\n  |> group()\n  |> distinct(column: \"instance\")\n  |> findColumn(fn: (key) => true, column: \"_value\")\n\nfrom(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] =~ /^(network_up|link_speed|link_speed_max|rx_errors|rx_crc_errors|rx_length_errors|rx_missed_errors|rx_dropped|rx_over_errors|rx_fifo_errors|rx_frame_errors|rx_nohandler|tx_errors|tx_dropped|tx_carrier_errors|tx_aborted_errors|tx_fifo_errors|tx_heartbeat_errors|tx_window_errors|collisions|multicast|rx_bytes|tx_bytes|rx_packets|tx_packets)$/)\n  |> filter(fn: (r) => contains(value: r.instance, set: phys))\n  |> last()\n  |> keep(columns: [\"instance\", \"_field\", \"_value\"])\n  |> group()\n  |> pivot(rowKey: [\"instance\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> sort(columns: [\"instance\"])",
+          "refId": "A"
+        }
+      ],
+      "title": "NIC TX Errors (Since Boot)",
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "collisions",
+                "instance",
+                "tx_aborted_errors",
+                "tx_carrier_errors",
+                "tx_dropped",
+                "tx_errors",
+                "tx_fifo_errors",
+                "tx_heartbeat_errors",
+                "tx_window_errors"
+              ]
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "link_speed": true,
+              "link_speed_max": true,
+              "multicast": true,
+              "network_up": true,
+              "rx_bytes": true,
+              "rx_crc_errors": true,
+              "rx_dropped": true,
+              "rx_errors": true,
+              "rx_fifo_errors": true,
+              "rx_frame_errors": true,
+              "rx_length_errors": true,
+              "rx_missed_errors": true,
+              "rx_nohandler": true,
+              "rx_over_errors": true,
+              "rx_packets": true,
+              "tx_bytes": true,
+              "tx_packets": true
+            },
+            "indexByName": {
+              "collisions": 8,
+              "instance": 0,
+              "tx_aborted_errors": 4,
+              "tx_carrier_errors": 3,
+              "tx_dropped": 2,
+              "tx_errors": 1,
+              "tx_fifo_errors": 5,
+              "tx_heartbeat_errors": 6,
+              "tx_window_errors": 7
+            },
+            "renameByName": {
+              "collisions": "Collisions",
+              "instance": "Interface",
+              "link_speed": "Speed",
+              "link_speed_max": "Max Speed",
+              "multicast": "RX Multicast",
+              "network_up": "Link",
+              "rx_bytes": "RX Bytes",
+              "rx_crc_errors": "RX CRC Errors",
+              "rx_dropped": "RX Dropped",
+              "rx_errors": "RX Errors",
+              "rx_fifo_errors": "RX FIFO Errors",
+              "rx_frame_errors": "RX Frame Errors",
+              "rx_length_errors": "RX Length Errors",
+              "rx_missed_errors": "RX Missed",
+              "rx_nohandler": "RX No Handler",
+              "rx_over_errors": "RX Overrun",
+              "rx_packets": "RX Packets",
+              "tx_aborted_errors": "Aborted",
+              "tx_bytes": "TX Bytes",
+              "tx_carrier_errors": "Carrier",
+              "tx_dropped": "Dropped",
+              "tx_errors": "Errors",
+              "tx_fifo_errors": "FIFO",
+              "tx_heartbeat_errors": "Heartbeat",
+              "tx_packets": "TX Packets",
+              "tx_window_errors": "Window"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${dsProxmox}"
+      },
+      "description": "Number of NEW RX errors in each time interval (delta of the ip -s link counters). A bar = errors occurred at that time. Yellow dashed line = 1 error (attention), red dashed line = 100 errors (critical). The legend table is sorted by Total (descending), so the NIC / error type with the most errors is always on top.\n• CRC: corrupted frames — bad cable / SFP / optics\n• Length: frames with an invalid length\n• Missed / Overrun / RX FIFO: NIC or ring buffer overflow — CPU/IRQ cannot keep up\n• Frame: frame alignment errors\n• RX Errors (total): sum of all RX error types",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "New Errors",
+            "axisPlacement": "auto",
+            "axisSoftMax": 5,
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "bars",
+            "fillOpacity": 75,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "dashed"
+            }
+          },
+          "decimals": 0,
+          "displayName": "${__field.labels.series}",
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "transparent",
+                "value": 0
+              },
+              {
+                "color": "#FADE2A",
+                "value": 1
+              },
+              {
+                "color": "#F2495C",
+                "value": 100
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 54
+      },
+      "id": 9996,
+      "options": {
+        "legend": {
+          "calcs": [
+            "sum",
+            "max",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "sortBy": "Total",
+          "sortDesc": true,
+          "width": 420
+        },
+        "tooltip": {
+          "hideZeros": true,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "13.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${dsProxmox}"
+          },
+          "query": "phys = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"link_speed_max\")\n  |> keep(columns: [\"instance\"])\n  |> group()\n  |> distinct(column: \"instance\")\n  |> findColumn(fn: (key) => true, column: \"_value\")\n\nfrom(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] =~ /^rx_(errors|crc_errors|length_errors|missed_errors|over_errors|fifo_errors|frame_errors)$/)\n  |> filter(fn: (r) => contains(value: r.instance, set: phys))\n  |> group(columns: [\"instance\", \"_field\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> difference(nonNegative: true)\n  |> map(fn: (r) => ({ r with series: r.instance + \"  ·  \" + (if r._field == \"rx_errors\" then \"RX Errors (total)\" else if r._field == \"rx_crc_errors\" then \"CRC\" else if r._field == \"rx_length_errors\" then \"Length\" else if r._field == \"rx_missed_errors\" then \"Missed\" else if r._field == \"rx_over_errors\" then \"Overrun\" else if r._field == \"rx_fifo_errors\" then \"RX FIFO\" else if r._field == \"rx_frame_errors\" then \"Frame\" else if r._field == \"rx_dropped\" then \"RX Dropped\" else if r._field == \"rx_nohandler\" then \"RX No Handler\" else if r._field == \"tx_errors\" then \"TX Errors (total)\" else if r._field == \"tx_dropped\" then \"TX Dropped\" else if r._field == \"tx_carrier_errors\" then \"Carrier\" else if r._field == \"tx_aborted_errors\" then \"Aborted\" else if r._field == \"tx_fifo_errors\" then \"TX FIFO\" else if r._field == \"tx_heartbeat_errors\" then \"Heartbeat\" else if r._field == \"tx_window_errors\" then \"Window\" else if r._field == \"collisions\" then \"Collisions\" else r._field) }))\n  |> group(columns: [\"series\"], mode: \"by\")\n  |> keep(columns: [\"_time\", \"_value\", \"series\"])\n  |> yield(name: \"delta\")",
+          "refId": "A"
+        }
+      ],
+      "title": "NIC RX Errors (Per Interval)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${dsProxmox}"
+      },
+      "description": "Number of NEW TX errors and dropped packets in each time interval. Yellow dashed line = 1 (attention), red dashed line = 100 (critical). The legend table is sorted by Total (descending).\n• RX / TX Dropped: packets dropped by the kernel (queue full, VLAN/MTU mismatch)\n• Carrier: loss of physical signal — link flap, cable / SFP issue\n• Aborted / Window / Heartbeat: physical-layer errors\n• Collisions: collisions (half-duplex)\n• RX No Handler: packets with no protocol handler\n• TX Errors (total): sum of all TX error types",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "New Errors",
+            "axisPlacement": "auto",
+            "axisSoftMax": 5,
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "bars",
+            "fillOpacity": 75,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "dashed"
+            }
+          },
+          "decimals": 0,
+          "displayName": "${__field.labels.series}",
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "transparent",
+                "value": 0
+              },
+              {
+                "color": "#FADE2A",
+                "value": 1
+              },
+              {
+                "color": "#F2495C",
+                "value": 100
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 62
+      },
+      "id": 9997,
+      "options": {
+        "legend": {
+          "calcs": [
+            "sum",
+            "max",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "sortBy": "Total",
+          "sortDesc": true,
+          "width": 420
+        },
+        "tooltip": {
+          "hideZeros": true,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "13.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${dsProxmox}"
+          },
+          "query": "phys = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"link_speed_max\")\n  |> keep(columns: [\"instance\"])\n  |> group()\n  |> distinct(column: \"instance\")\n  |> findColumn(fn: (key) => true, column: \"_value\")\n\nfrom(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] =~ /^(rx_dropped|rx_nohandler|tx_dropped|tx_errors|tx_carrier_errors|tx_aborted_errors|tx_fifo_errors|tx_heartbeat_errors|tx_window_errors|collisions)$/)\n  |> filter(fn: (r) => contains(value: r.instance, set: phys))\n  |> group(columns: [\"instance\", \"_field\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> difference(nonNegative: true)\n  |> map(fn: (r) => ({ r with series: r.instance + \"  ·  \" + (if r._field == \"rx_errors\" then \"RX Errors (total)\" else if r._field == \"rx_crc_errors\" then \"CRC\" else if r._field == \"rx_length_errors\" then \"Length\" else if r._field == \"rx_missed_errors\" then \"Missed\" else if r._field == \"rx_over_errors\" then \"Overrun\" else if r._field == \"rx_fifo_errors\" then \"RX FIFO\" else if r._field == \"rx_frame_errors\" then \"Frame\" else if r._field == \"rx_dropped\" then \"RX Dropped\" else if r._field == \"rx_nohandler\" then \"RX No Handler\" else if r._field == \"tx_errors\" then \"TX Errors (total)\" else if r._field == \"tx_dropped\" then \"TX Dropped\" else if r._field == \"tx_carrier_errors\" then \"Carrier\" else if r._field == \"tx_aborted_errors\" then \"Aborted\" else if r._field == \"tx_fifo_errors\" then \"TX FIFO\" else if r._field == \"tx_heartbeat_errors\" then \"Heartbeat\" else if r._field == \"tx_window_errors\" then \"Window\" else if r._field == \"collisions\" then \"Collisions\" else r._field) }))\n  |> group(columns: [\"series\"], mode: \"by\")\n  |> keep(columns: [\"_time\", \"_value\", \"series\"])\n  |> yield(name: \"delta\")",
+          "refId": "A"
+        }
+      ],
+      "title": "NIC TX Errors & Drops (Per Interval)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${dsProxmox}"
+      },
+      "description": "Driver/hardware counters from \"ethtool -S\" that are non-zero, accumulated since boot (the \"ethtool_\" prefix is removed).\nAlert levels: 🟩 0 = OK · 🟨 1–99 = attention · 🟧 100–999 = warning · 🟥 1,000–9,999 = critical · dark red ≥10,000 = severe.\nNote: not every counter is an error. Example: rx_steer_missed_packets (mlx5) = packets that did not match any flow-steering rule — often normal background traffic; only investigate if it keeps growing quickly. Check the chart on the right to see whether a counter is still increasing.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "footer": {
+              "reducers": []
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "noValue": "All ethtool counters are 0 ✔",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgba(86,166,75,0.30)",
+                "value": 0
+              },
+              {
+                "color": "#FADE2A",
+                "value": 1
+              },
+              {
+                "color": "#FF9830",
+                "value": 100
+              },
+              {
+                "color": "#F2495C",
+                "value": 1000
+              },
+              {
+                "color": "#C4162A",
+                "value": 10000
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "instance"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "NIC"
+              },
+              {
+                "id": "custom.width",
+                "value": 100
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "counter"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#8AB8FF",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "displayName",
+                "value": "Counter"
+              },
+              {
+                "id": "custom.width",
+                "value": 210
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "value"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "gradient",
+                  "type": "gauge",
+                  "valueDisplayMode": "color"
+                }
+              },
+              {
+                "id": "max",
+                "value": 1000
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "displayName",
+                "value": "Count"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 70
+      },
+      "id": 9998,
+      "options": {
+        "cellHeight": "md",
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "Count"
+          }
+        ]
+      },
+      "pluginVersion": "13.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${dsProxmox}"
+          },
+          "query": "import \"strings\"\n\nphys = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"link_speed_max\")\n  |> keep(columns: [\"instance\"])\n  |> group()\n  |> distinct(column: \"instance\")\n  |> findColumn(fn: (key) => true, column: \"_value\")\n\nfrom(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] =~ /^ethtool_/)\n  |> filter(fn: (r) => contains(value: r.instance, set: phys))\n  |> last()\n  |> filter(fn: (r) => r._value > 0)\n  |> map(fn: (r) => ({ instance: r.instance, counter: strings.trimPrefix(v: r._field, prefix: \"ethtool_\"), value: r._value }))\n  |> group()\n  |> sort(columns: [\"instance\", \"counter\"])",
+          "refId": "A"
+        }
+      ],
+      "title": "Ethtool Counters (Since Boot)",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "indexByName": {
+              "counter": 1,
+              "instance": 0,
+              "value": 2
+            },
+            "renameByName": {}
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${dsProxmox}"
+      },
+      "description": "How much each non-zero ethtool counter increased in each time interval (bars). A flat line at 0 = the counter is not growing (good). Yellow dashed line = 1, red dashed line = 100 new events per interval. Legend is sorted by Total (descending).",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "New Events",
+            "axisPlacement": "auto",
+            "axisSoftMax": 5,
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "dashed"
+            }
+          },
+          "decimals": 0,
+          "displayName": "${__field.labels.series}",
+          "mappings": [],
+          "min": 0,
+          "noValue": "No driver counter increased in this time range ✔",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "transparent",
+                "value": 0
+              },
+              {
+                "color": "#FADE2A",
+                "value": 1
+              },
+              {
+                "color": "#F2495C",
+                "value": 100
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 70
+      },
+      "id": 9999,
+      "interval": "1m",
+      "maxDataPoints": 200,
+      "options": {
+        "legend": {
+          "calcs": [
+            "sum",
+            "max",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "sortBy": "Total",
+          "sortDesc": true
+        },
+        "tooltip": {
+          "hideZeros": true,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "13.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${dsProxmox}"
+          },
+          "query": "import \"strings\"\n\nphys = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"link_speed_max\")\n  |> keep(columns: [\"instance\"])\n  |> group()\n  |> distinct(column: \"instance\")\n  |> findColumn(fn: (key) => true, column: \"_value\")\n\ndata = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] =~ /^ethtool_/)\n  |> filter(fn: (r) => contains(value: r.instance, set: phys))\n  |> group(columns: [\"instance\", \"_field\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> difference(nonNegative: true)\n  |> map(fn: (r) => ({ r with series: r.instance + \"  ·  \" + strings.trimPrefix(v: r._field, prefix: \"ethtool_\") }))\n  |> group(columns: [\"series\"], mode: \"by\")\n  |> keep(columns: [\"_time\", \"_value\", \"series\"])\n\nnz = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] =~ /^ethtool_/)\n  |> filter(fn: (r) => contains(value: r.instance, set: phys))\n  |> last()\n  |> filter(fn: (r) => r._value > 0)\n  |> map(fn: (r) => ({ series: r.instance + \"  ·  \" + strings.trimPrefix(v: r._field, prefix: \"ethtool_\") }))\n  |> group(columns: [\"series\"], mode: \"by\")\n\njoin(tables: {d: data, n: nz}, on: [\"series\"])\n  |> keep(columns: [\"_time\", \"_value\", \"series\"])\n  |> group(columns: [\"series\"], mode: \"by\")\n  |> yield(name: \"delta\")",
+          "refId": "A"
+        }
+      ],
+      "title": "Ethtool Counters (Per Interval)",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 80
+      },
+      "id": 49,
+      "panels": [],
+      "title": "Cluster Resources — $server",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${dsProxmox}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": true,
+            "footer": {
+              "reducers": []
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "short"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Uptime"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "dtdhms"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 81
+      },
+      "id": 16,
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true
+      },
+      "pluginVersion": "13.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${dsProxmox}"
+          },
+          "query": "from(bucket: \"${Bucket}\")\n  |> range(start: -10m)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"system\")\n  |> filter(fn: (r) => r[\"_field\"] == \"uptime\")\n  |> filter(fn: (r) => r[\"object\"] == \"qemu\")\n  |> filter(fn: (r) => r[\"nodename\"] =~ /${server:regex}/)\n  |> group(columns: [\"host\",\"nodename\"], mode: \"by\")\n  |> filter(fn: (r) => r._value > 0)\n  |> last()\n  |> limit(n:1)\n  |> group(columns: [\"_measurement\"])\n  |> keep(columns: [\"_time\",\"host\",\"nodename\",\"_value\"])\n  \n",
+          "refId": "A"
+        }
+      ],
+      "title": "Running VMs",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "indexByName": {
+              "_time": 0,
+              "_value": 2,
+              "host": 1
+            },
+            "renameByName": {
+              "_time": "Time",
+              "_value": "Uptime",
+              "host": "VM"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 88
+      },
+      "id": 23,
+      "panels": [],
+      "title": "CPU & Memory — $server",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${dsProxmox}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Percent",
+            "axisPlacement": "left",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "showValues": false,
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 2,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "avg1"
+            },
+            "properties": [
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              },
+              {
+                "id": "custom.axisLabel",
+                "value": "Loadavg"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 89
+      },
+      "id": 21,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "maxHeight": 600,
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "13.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${dsProxmox}"
+          },
+          "query": "from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\n  |> filter(fn: (r) =>\n    r._measurement == \"cpustat\" and\n    r._field == \"cpu\"\n  )\n  |> filter(fn: (r) => r[\"host\"] =~ /${server:regex}/)\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> map(fn: (r) => ({\n        r with\n        _time: r._time,\n        _value: float(v: r._value) * float(v: 100)\n      })\n    )\n",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${dsProxmox}"
+          },
+          "query": "from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\n  |> filter(fn: (r) =>\n    r._measurement == \"cpustat\" and\n    r._field == \"wait\"\n  )\n  |> filter(fn: (r) => r[\"host\"] =~ /${server:regex}/)\n  |> map(fn: (r) => ({\n        r with\n        _time: r._time,\n        _value: float(v: r._value) * float(v: 100)\n      })\n    )\n  |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${dsProxmox}"
+          },
+          "query": "from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\n  |> filter(fn: (r) =>\n    r._measurement == \"cpustat\" and\n    r._field == \"avg1\"\n  )\n  |> filter(fn: (r) => r[\"host\"] =~ /${server:regex}/)\n  |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)",
+          "refId": "C"
+        }
+      ],
+      "title": "Host CPU Usage",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${dsProxmox}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Memory",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "hue",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "showValues": false,
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 89
+      },
+      "id": 24,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "maxHeight": 600,
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "13.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${dsProxmox}"
+          },
+          "query": "from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"memory\")\n  |> filter(fn: (r) => r[\"_field\"] == \"memtotal\" or r[\"_field\"] == \"memused\")\n  |> filter(fn: (r) => r[\"host\"] =~ /${server:regex}/)\n//  |> group(columns: [\"host\",\"nodename\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+          "refId": "A"
+        }
+      ],
+      "title": "Host Memory Usage",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${dsProxmox}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "displayName": "${__field.labels.host} ${__field.labels.nodename}",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 98
+      },
+      "id": 26,
+      "options": {
+        "legend": {
+          "calcs": [
+            "last"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "maxHeight": 600,
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "13.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${dsProxmox}"
+          },
+          "query": "from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"system\")\n  |> filter(fn: (r) => r[\"_field\"] == \"cpu\")\n  |> filter(fn: (r) => r[\"object\"] == \"qemu\")\n  |> filter(fn: (r) => r[\"_value\"] > 0)\n  |> filter(fn: (r) => r[\"nodename\"] =~ /${server:regex}/)\n  |> group(columns: [\"host\",\"nodename\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n//  |> yield(name: \"mean\")\n",
+          "refId": "A"
+        }
+      ],
+      "title": "VM CPU Usage",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${dsProxmox}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 98
+      },
+      "id": 27,
+      "options": {
+        "legend": {
+          "calcs": [
+            "last"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "sortBy": "Last",
+          "sortDesc": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "maxHeight": 600,
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "13.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${dsProxmox}"
+          },
+          "query": "mem = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"system\")\n  |> filter(fn: (r) => r[\"_field\"] == \"mem\")\n  |> filter(fn: (r) => r[\"object\"] == \"qemu\")\n  |> filter(fn: (r) => r[\"_value\"] > 0)\n  |> filter(fn: (r) => r[\"nodename\"] =~ /^${server:regex}$/)\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n\nmaxmem = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"system\")\n  |> filter(fn: (r) => r[\"_field\"] == \"maxmem\")\n  |> filter(fn: (r) => r[\"object\"] == \"qemu\")\n  |> filter(fn: (r) => r[\"_value\"] > 0)\n  |> filter(fn: (r) => r[\"nodename\"] =~ /^${server:regex}$/)\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n\njoin(\n    tables: {mem:mem, maxmem:maxmem},\n    on: [\"_time\",\"_stop\",\"_start\",\"host\",\"nodename\"]\n\n)\n\n|> map(fn: (r) => ({\n      _time: r._time,\n      _value: float(v:r._value_mem) / float(v:r._value_maxmem) * float(v:100),\n      host: r.host,\n      nodename: r.nodename\n    })\n  )\n\n|> group(columns: [\"host\",\"nodename\"], mode: \"by\")",
+          "refId": "A"
+        }
+      ],
+      "title": "VM Memory Usage",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${dsProxmox}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "displayName": "${__field.labels.host} ${__field.labels.nodename}",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "Bps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 106
+      },
+      "id": 30,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "mean"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "sortBy": "Last *",
+          "sortDesc": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "maxHeight": 600,
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "13.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${dsProxmox}"
+          },
+          "query": "from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"system\")\n  |> filter(fn: (r) => r[\"_field\"] == \"diskread\")\n  |> filter(fn: (r) => r[\"object\"] == \"qemu\")\n  |> filter(fn: (r) => r[\"_value\"] > 0)\n  |> filter(fn: (r) => r[\"nodename\"] =~ /${server:regex}/)\n  |> group(columns: [\"host\",\"nodename\"], mode:\"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> derivative(unit: 1s)\n//  |> yield(name: \"mean\")\n",
+          "refId": "A"
+        }
+      ],
+      "title": "VM Disk Read",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${dsProxmox}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "displayName": "${__field.labels.host} ${__field.labels.nodename}",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "Bps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 106
+      },
+      "id": 31,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "mean"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "sortBy": "Last *",
+          "sortDesc": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "maxHeight": 600,
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "13.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${dsProxmox}"
+          },
+          "query": "from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"system\")\n  |> filter(fn: (r) => r[\"_field\"] == \"diskwrite\")\n  |> filter(fn: (r) => r[\"object\"] == \"qemu\")\n  |> filter(fn: (r) => r[\"_value\"] > 0)\n  |> filter(fn: (r) => r[\"nodename\"] =~ /${server:regex}/)\n  |> group(columns: [\"host\",\"nodename\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> derivative(unit: 1s)\n//  |> yield(name: \"mean\")\n",
+          "refId": "A"
+        }
+      ],
+      "title": "VM Disk Write",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${dsProxmox}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "displayName": "${__field.labels.host} ${__field.labels.nodename}",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "decbytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 114
+      },
+      "id": 34,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "maxHeight": 600,
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "13.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${dsProxmox}"
+          },
+          "query": "from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"system\")\n  |> filter(fn: (r) => r[\"_field\"] == \"netin\")\n  |> filter(fn: (r) => r[\"object\"] == \"qemu\")\n  |> filter(fn: (r) => r[\"_value\"] > 0)\n  |> filter(fn: (r) => r[\"nodename\"] =~ /${server:regex}/)\n  |> group(columns: [\"host\",\"nodename\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> derivative(unit: 1s, nonNegative: true)\n//  |> yield(name: \"mean\")\n",
+          "refId": "A"
+        }
+      ],
+      "title": "VM Network In",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${dsProxmox}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "displayName": "${__field.labels.host} ${__field.labels.nodename}",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "decbytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 114
+      },
+      "id": 35,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "maxHeight": 600,
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "13.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${dsProxmox}"
+          },
+          "query": "from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"system\")\n  |> filter(fn: (r) => r[\"_field\"] == \"netout\")\n  |> filter(fn: (r) => r[\"object\"] == \"qemu\")\n  |> filter(fn: (r) => r[\"_value\"] > 0)\n  |> filter(fn: (r) => r[\"nodename\"] =~ /${server:regex}/)\n  |> group(columns: [\"host\",\"nodename\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> derivative(unit: 1s, nonNegative: true)\n//  |> yield(name: \"mean\")\n",
+          "refId": "A"
+        }
+      ],
+      "title": "VM Network Out",
+      "type": "timeseries"
+    }
+  ],
+  "preload": false,
+  "refresh": "5s",
+  "schemaVersion": 42,
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "current": {},
+        "description": "Fluxlang Capable Datasouce",
+        "includeAll": false,
+        "label": "Datasource",
+        "name": "dsProxmox",
+        "options": [],
+        "query": "influxdb",
+        "refresh": 1,
+        "regex": "",
+        "type": "datasource"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "influxdb",
+          "uid": "${dsProxmox}"
+        },
+        "definition": "buckets()",
+        "includeAll": false,
+        "name": "Bucket",
+        "options": [],
+        "query": "buckets()",
+        "refresh": 1,
+        "regex": "",
+        "regexApplyTo": "value",
+        "type": "query"
+      },
+      {
+        "current": {
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "influxdb",
+          "uid": "${dsProxmox}"
+        },
+        "definition": "from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => \n    r._measurement == \"system\" and\n    r.object == \"nodes\"\n  )\n  |> keyValues(keyColumns: [\"host\"])\n  |> group()\n  |> keep(columns: [\"host\"])\n  |> distinct(column: \"host\")\n\n",
+        "includeAll": true,
+        "label": "Server",
+        "multi": true,
+        "name": "server",
+        "options": [],
+        "query": "from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => \n    r._measurement == \"system\" and\n    r.object == \"nodes\"\n  )\n  |> keyValues(keyColumns: [\"host\"])\n  |> group()\n  |> keep(columns: [\"host\"])\n  |> distinct(column: \"host\")\n\n",
+        "refresh": 1,
+        "regex": "",
+        "regexApplyTo": "value",
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "Asia/Ho_Chi_Minh",
+  "title": "Proxmox Cluster",
+  "uid": "pve-cluster-nic",
+  "version": 1,
+  "weekStart": ""
+}
