@@ -2,16 +2,18 @@
 # install.sh - Cai Monitor NIC cho ca cluster Proxmox bang 1 lenh
 #
 # Chay tren 1 node Proxmox bang root:
-#   bash install.sh                 (tu lay IP node tu cluster, hoi xac nhan, cai, kiem tra, tao dashboard)
-#   bash install.sh -y              (khong hoi)
+#   bash install.sh                 (hoi InfluxDB -> node -> cai -> kiem tra -> Grafana + ten dashboard)
+#   bash install.sh -y              (khong hoi, dung gia tri tu Metric Server va bien moi truong)
 #   bash install.sh -n "10.0.0.11 10.0.0.12"     (chi cai cac node nay)
 #   bash install.sh --no-dashboard  (bo qua buoc dashboard)
 #
-# Import dashboard luon vao Grafana: dat truoc
-#   export GRAFANA_URL=https://<ip-grafana>:3000  GRAFANA_TOKEN='glsa_xxx'  [GRAFANA_DS='ten-datasource']
+# Chay -y (khong hoi) thi dat truoc cac bien can thiet, vi du:
+#   export INFLUX_URL=http://<ip-influx>:8086 INFLUX_ORG=<org> INFLUX_BUCKET=<bucket> INFLUX_TOKEN='...'
+#   export GRAFANA_URL=https://<ip-grafana>:3000 GRAFANA_TOKEN='glsa_xxx' DASH_TITLE='Proxmox Cluster A'
 #
-# Cac buoc: 1) kiem tra moi truong  2) lay danh sach node -> deploy/nodes.txt
-#           3) install len tung node  4) check  5) tao/import dashboard
+# Cac buoc: 1) kiem tra moi truong  2) thong tin InfluxDB (+ cap nhat Metric Server Proxmox)
+#           3) danh sach node -> deploy/nodes.txt  4) install len tung node  5) check
+#           6) Grafana: datasource + ten dashboard + import
 
 set -u
 
@@ -19,6 +21,7 @@ REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
 DEPLOY="$REPO_DIR/deploy/deploy-monitor-nic-proxmox.sh"
 NODES_FILE="$REPO_DIR/deploy/nodes.txt"
 IMPORT_SH="$REPO_DIR/dashboard-grafana/import-dashboard.sh"
+COMMON_SH="$REPO_DIR/dashboard-grafana/influx-common.sh"
 ASK=1
 NODES_ARG=""
 DASHBOARD=1
@@ -40,11 +43,12 @@ step() { echo; echo "=============================================="; echo "== $
 die()  { echo "[LOI] $*"; exit 1; }
 
 # ---------------------------------------------------------------------
-step "1/5 Kiem tra moi truong"
+step "1/6 Kiem tra moi truong"
 # ---------------------------------------------------------------------
 [ "$(id -u)" = 0 ] || die "Can chay bang root"
 command -v pvesh > /dev/null || die "Khong phai node Proxmox (khong co pvesh)"
 [ -f "$DEPLOY" ] || die "Khong thay $DEPLOY. Hay clone ca repo, khong copy le tung file."
+[ -f "$COMMON_SH" ] || die "Khong thay $COMMON_SH. Hay clone ca repo, khong copy le tung file."
 sed -i 's/\r$//' "$DEPLOY" "$REPO_DIR"/deploy/*.pm "$REPO_DIR"/dashboard-grafana/*.sh 2> /dev/null  # file sua tren Windows
 chmod +x "$DEPLOY" "$REPO_DIR"/dashboard-grafana/*.sh "$0" 2> /dev/null
 for p in ethtool python3 curl; do
@@ -53,12 +57,52 @@ for p in ethtool python3 curl; do
         apt-get install -y "$p" > /dev/null 2>&1 || die "Khong cai duoc $p (apt-get install -y $p)"
     fi
 done
-grep -q '^influxdb:' /etc/pve/status.cfg 2> /dev/null \
-    || die "Chua cau hinh Metric Server InfluxDB (Datacenter -> Metric Server -> Add -> InfluxDB)"
-echo "  [OK] root, Proxmox, ethtool, python3, curl, Metric Server InfluxDB"
+echo "  [OK] root, Proxmox, ethtool, python3, curl"
+# shellcheck source=dashboard-grafana/influx-common.sh
+. "$COMMON_SH"
 
 # ---------------------------------------------------------------------
-step "2/5 Danh sach node"
+step "2/6 Thong tin InfluxDB"
+# ---------------------------------------------------------------------
+influx_setup || die "Thong tin InfluxDB chua dung. Kiem tra URL/org/bucket/token roi chay lai."
+
+# Metric Server cua Proxmox phai ghi dung vao InfluxDB/bucket nay
+read -r m_proto m_server m_port m_prefix < <(python3 -c '
+import sys, urllib.parse
+u = urllib.parse.urlsplit(sys.argv[1])
+print(u.scheme or "http", u.hostname or "", u.port or (443 if u.scheme == "https" else 8086), u.path.strip("/") or "-")' "$INFLUX_URL" | tr -d '\r')
+[ "$m_prefix" = "-" ] && m_prefix=""
+cur_token=""
+[ -n "$INFLUX_ID" ] && cur_token=$(cat "$METRIC_PRIV/$INFLUX_ID.pw" 2> /dev/null)
+if [ -n "$INFLUX_ID" ] && [ "$(influx_cfg server)" = "$m_server" ] && [ "$(influx_cfg port)" = "$m_port" ] \
+    && [ "$(influx_cfg influxdbproto)" = "$m_proto" ] && [ "$(influx_cfg organization)" = "$INFLUX_ORG" ] \
+    && [ "$(influx_cfg bucket)" = "$INFLUX_BUCKET" ] && [ "$cur_token" = "$INFLUX_TOKEN" ] \
+    && [ "$(influx_cfg api-path-prefix)" = "$m_prefix" ]; then
+    echo "  [OK] Metric Server '$INFLUX_ID' cua Proxmox da dung thong tin tren"
+else
+    args=(--server "$m_server" --port "$m_port" --influxdbproto "$m_proto"
+          --organization "$INFLUX_ORG" --bucket "$INFLUX_BUCKET" --token "$INFLUX_TOKEN")
+    [ -n "$m_prefix" ] && args+=(--api-path-prefix "$m_prefix")
+    [ "$m_proto" = https ] && args+=(--verify-certificate 0)
+    if [ -n "$INFLUX_ID" ]; then
+        echo "  Metric Server '$INFLUX_ID' cua Proxmox dang khac thong tin vua nhap."
+        ask_yes "Cap nhat Metric Server '$INFLUX_ID' theo thong tin moi?" Y || die "Huy. Metric Server phai ghi vao dung InfluxDB/bucket."
+        pvesh set "/cluster/metrics/server/$INFLUX_ID" "${args[@]}" > /dev/null || die "Khong cap nhat duoc Metric Server '$INFLUX_ID'"
+        echo "  [OK] Da cap nhat Metric Server '$INFLUX_ID'"
+    else
+        INFLUX_ID="influxdb"
+        echo "  Proxmox chua co Metric Server InfluxDB."
+        ask_yes "Tao Metric Server '$INFLUX_ID' tro toi $INFLUX_URL, bucket $INFLUX_BUCKET?" Y || die "Huy. Can Metric Server InfluxDB de gui du lieu."
+        pvesh create "/cluster/metrics/server/$INFLUX_ID" --type influxdb "${args[@]}" > /dev/null \
+            || die "Khong tao duoc Metric Server '$INFLUX_ID'"
+        echo "  [OK] Da tao Metric Server '$INFLUX_ID'"
+    fi
+fi
+# Buoc dashboard dung lai, khong hoi InfluxDB lan nua
+export INFLUX_URL INFLUX_ORG INFLUX_BUCKET INFLUX_TOKEN INFLUX_CHECKED=1
+
+# ---------------------------------------------------------------------
+step "3/6 Danh sach node"
 # ---------------------------------------------------------------------
 if [ -n "$NODES_ARG" ]; then
     read -ra NODES <<< "$NODES_ARG"
@@ -90,23 +134,21 @@ fi
 echo "  [OK] Da ghi deploy/nodes.txt"
 
 # ---------------------------------------------------------------------
-step "3/5 Cai module len cac node"
+step "4/6 Cai module len cac node"
 # ---------------------------------------------------------------------
 "$DEPLOY" install -f "$NODES_FILE" || die "Cai dat loi o mot so node (xem output tren). Sua xong chay lai: bash install.sh -y"
 
 # ---------------------------------------------------------------------
-step "4/5 Kiem tra"
+step "5/6 Kiem tra"
 # ---------------------------------------------------------------------
 "$DEPLOY" check -f "$NODES_FILE" || echo "  [CANH BAO] Co node chua dat, chay: $DEPLOY diag -f $NODES_FILE"
 
 # ---------------------------------------------------------------------
-step "5/5 Dashboard Grafana"
+step "6/6 Dashboard Grafana"
 # ---------------------------------------------------------------------
 if [ "$DASHBOARD" = 1 ]; then
     flags=()
     [ "$ASK" = 1 ] || flags+=(-y)
-    bucket=$(awk '/^influxdb:/ {s=1; next} /^[a-z]+:/ {s=0} s && $1=="bucket" {print $2; exit}' /etc/pve/status.cfg)
-    [ -n "$bucket" ] && flags+=(-b "$bucket")
     bash "$IMPORT_SH" "${flags[@]}" || echo "  [CANH BAO] Chua import duoc dashboard, chay lai: bash $IMPORT_SH"
 else
     echo "  Bo qua (--no-dashboard)"

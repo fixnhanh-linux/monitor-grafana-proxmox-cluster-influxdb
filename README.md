@@ -144,7 +144,8 @@ monitor-grafana-proxmox-cluster-influxdb/
 │   └── nodes.txt                                 Danh sách IP node (install.sh tự điền nếu để trống)
 ├── dashboard-grafana/                            Dashboard Grafana
 │   ├── proxmox-cluster-dashboard.json            Dashboard mẫu (file duy nhất)
-│   ├── import-dashboard.sh                       Tạo + import dashboard đúng bucket/datasource
+│   ├── import-dashboard.sh                       Hỏi InfluxDB → Grafana → datasource → tên dashboard, rồi import
+│   ├── influx-common.sh                          Hàm dùng chung: hỏi và kiểm tra thông tin InfluxDB
 │   ├── export-dashboard.sh                       Lấy dashboard từ Grafana về repo sau khi sửa giao diện
 │   └── Huong-Dan-Import-Dashboard-Grafana.md     Hướng dẫn import / export dashboard
 └── docs/
@@ -171,29 +172,71 @@ Chạy trên node đầu tiên của cluster bằng `root`:
 ```bash
 apt install -y git
 git clone https://github.com/fixnhanh-linux/monitor-grafana-proxmox-cluster-influxdb.git /root/nic-monitor
-
-# (tùy chọn) import dashboard luôn vào Grafana
-export GRAFANA_URL=https://<IP-Grafana>:3000
-export GRAFANA_TOKEN='glsa_xxx'        # Administration → Service accounts → role Editor
-
 bash /root/nic-monitor/install.sh
 ```
 
-`install.sh` tự làm 5 bước:
+Chuẩn bị trước 2 token:
 
-| Bước | Việc | Ghi chú |
+- **Token InfluxDB** có quyền đọc/ghi bucket của cluster (InfluxDB UI → **Load Data → API Tokens**).
+- **Token Grafana**: **Administration → Users and access → Service accounts → Add service account** → **Add service account token**. Chọn role **Admin** nếu muốn script tự tạo datasource; role **Editor** chỉ đủ khi dùng datasource có sẵn.
+
+`install.sh` làm 6 bước và **hỏi lần lượt**: thông tin InfluxDB trước, sau đó tới Grafana, cuối cùng là tên dashboard. Mục nào có giá trị sẵn thì hiện trong `[ ]`, bấm Enter để giữ. Token được nhập ẩn, không hiện ra màn hình.
+
+| Bước | Việc | Hỏi |
 |---|---|---|
-| 1 | Kiểm tra root, Proxmox, Metric Server InfluxDB; cài `ethtool`, `python3`, `curl` nếu thiếu | Sửa luôn file bị CRLF khi copy qua Windows |
-| 2 | Lấy IP các node đang online (`pvesh get /cluster/status`), ghi vào `deploy/nodes.txt` | Đã có IP trong `nodes.txt` thì dùng danh sách đó |
-| 3 | Cài module lên từng node | Giống `deploy-monitor-nic-proxmox.sh install -f nodes.txt` |
-| 4 | Kiểm tra từng node | Giống lệnh `check` |
-| 5 | Tạo dashboard đúng bucket trong `/etc/pve/status.cfg`, import nếu có `GRAFANA_URL` + `GRAFANA_TOKEN` | Không có token thì chỉ tạo file JSON |
+| 1 | Kiểm tra root, Proxmox; cài `ethtool`, `python3`, `curl` nếu thiếu | |
+| 2 | **InfluxDB**: kiểm tra kết nối, token, org và bucket. Nếu khác Metric Server của Proxmox thì cập nhật (`pvesh set`); chưa có thì tạo mới (`pvesh create`) | URL, Organization, Bucket, Token (mặc định lấy từ Metric Server) |
+| 3 | Lấy IP các node đang online (`pvesh get /cluster/status`), ghi vào `deploy/nodes.txt` | Xác nhận danh sách node |
+| 4 | Cài module lên từng node | |
+| 5 | Kiểm tra từng node (lệnh `check`) | |
+| 6 | **Grafana**: kết nối, chọn datasource khớp InfluxDB ở bước 2 hoặc **tạo datasource mới** từ thông tin đó, đặt tên dashboard, import | URL, Token Grafana, Datasource, Tên dashboard |
+
+Nhập sai URL hay token (InfluxDB hoặc Grafana) thì script báo lỗi và cho nhập lại, không bỏ qua bước nào.
+
+Ví dụ phần hỏi đáp:
+
+```
+== 2/6 Thong tin InfluxDB
+  Thong tin InfluxDB (Enter = giu gia tri trong [ ]):
+  URL InfluxDB (vd http://10.0.0.5:8086) [http://10.0.0.5:8086]:
+  Organization [myorg]:
+  Bucket [proxmox-demo]:
+  Token InfluxDB [Enter = giu gia tri hien tai]:
+  [OK] InfluxDB http://10.0.0.5:8086, org myorg, bucket proxmox-demo
+  [OK] Metric Server 'influxdb' cua Proxmox da dung thong tin tren
+...
+== 2. Grafana
+  URL Grafana (vd https://10.0.0.5:3000): https://10.0.0.5:3000
+  Token service account Grafana:
+  [OK] Ket noi Grafana: https://10.0.0.5:3000
+== 3. Datasource InfluxDB tren Grafana
+  InfluxDB can dung: http://10.0.0.5:8086 (org myorg)
+  0) Tao datasource moi tu thong tin InfluxDB tren
+  1) InfluxDB-Other  (http://10.0.0.9:8086)
+  Chon so [0]:
+  Ten datasource moi [InfluxDB-proxmox-demo]:
+  [OK] Da tao datasource 'InfluxDB-proxmox-demo'
+  [OK] Datasource: InfluxDB-proxmox-demo (ket noi InfluxDB thanh cong)
+== 4. Ten dashboard
+  Ten dashboard [Proxmox Cluster proxmox-demo]: Proxmox Cluster HCM
+  [OK] Da tao .../dashboard-proxmox-cluster-hcm.json (title "Proxmox Cluster HCM", uid pve-proxmox-cluster-hcm)
+== 5. Import vao Grafana
+  [OK] Da import vao Grafana: https://10.0.0.5:3000/d/pve-proxmox-cluster-hcm/proxmox-cluster-hcm
+```
 
 | Tùy chọn | Tác dụng |
 |---|---|
-| `-y` | Không hỏi xác nhận |
+| `-y` | Không hỏi. Thông tin InfluxDB lấy từ Metric Server; Grafana và tên dashboard lấy từ biến môi trường bên dưới |
 | `-n "10.0.0.11 10.0.0.12"` | Chỉ cài các node này |
-| `--no-dashboard` | Bỏ qua bước dashboard (dùng khi cài lại sau `apt upgrade`) |
+| `--no-dashboard` | Bỏ qua bước Grafana (dùng khi cài lại sau `apt upgrade`) |
+
+Chạy không hỏi (`-y`), đặt trước các biến:
+
+```bash
+export INFLUX_URL=http://<IP-InfluxDB>:8086 INFLUX_ORG=<org> INFLUX_BUCKET=<bucket> INFLUX_TOKEN='...'
+export GRAFANA_URL=https://<IP-Grafana>:3000 GRAFANA_TOKEN='glsa_xxx' DASH_TITLE='Proxmox Cluster HCM'
+bash /root/nic-monitor/install.sh -y
+```
 
 ### 6.3. Cài từng bước (thủ công)
 
@@ -239,11 +282,14 @@ Hoan thanh: 1 node OK
 ```bash
 cd /root/nic-monitor/dashboard-grafana
 
-# Hỏi URL, token, datasource rồi import (bỏ trống URL = chỉ tạo file JSON)
-bash import-dashboard.sh -b <ten-bucket>
+# Hỏi lần lượt: InfluxDB -> Grafana -> datasource (chọn có sẵn hoặc tạo mới) -> tên dashboard
+bash import-dashboard.sh
 
 # Hoặc truyền sẵn, không hỏi
-bash import-dashboard.sh -u https://<IP-Grafana>:3000 -t 'glsa_xxx' -d 'ten-datasource' -b <ten-bucket> -f Proxmox -y
+bash import-dashboard.sh -y -i http://<IP-InfluxDB>:8086 -O <org> -b <ten-bucket> -k '<token-influx>'     -u https://<IP-Grafana>:3000 -t 'glsa_xxx' -n 'Proxmox Cluster HCM' -f Proxmox
+
+# Chỉ tạo file JSON, không gọi Grafana
+bash import-dashboard.sh -b <ten-bucket> -n 'Proxmox Cluster HCM' --no-import
 ```
 
 Import tay: Grafana → **Dashboards → New → Import → Upload** file `dashboard-grafana/proxmox-cluster-dashboard.json`. Chi tiết: [Hướng dẫn import dashboard](dashboard-grafana/Huong-Dan-Import-Dashboard-Grafana.md).
@@ -257,7 +303,7 @@ Import tay: Grafana → **Dashboards → New → Import → Upload** file `dashb
 | `install [-f nodes.txt \| ip...]` | Cài module, patch `InfluxDB.pm` (có backup), restart `pvestatd`, tự kiểm tra |
 | `check [-f nodes.txt \| ip...]` | Kiểm tra module, patch, ethtool, pvestatd và in số liệu từng card |
 | `diag [-f nodes.txt \| ip...]` | Chẩn đoán vì sao Grafana không có số liệu |
-| `dashboard [bucket]` | Gọi `dashboard-grafana/import-dashboard.sh`: tạo `dashboard-<bucket>.json`, có `GRAFANA_URL` + `GRAFANA_TOKEN` thì import luôn |
+| `dashboard [bucket]` | Gọi `dashboard-grafana/import-dashboard.sh`: hỏi InfluxDB, Grafana, datasource, tên dashboard rồi import |
 | `uninstall [-f nodes.txt \| ip...]` | Khôi phục `InfluxDB.pm` gốc, xóa module, restart `pvestatd` |
 
 Không truyền node thì script dùng `nodes.txt` nằm cạnh script.

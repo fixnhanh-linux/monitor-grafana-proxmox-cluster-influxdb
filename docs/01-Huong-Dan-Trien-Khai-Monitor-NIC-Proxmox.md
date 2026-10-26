@@ -6,12 +6,13 @@ Thu thập đầy đủ các thông số như lệnh `ip -s link` và `ethtool -
 
 | File | Vai trò |
 |---|---|
-| `install.sh` | **Cài cả cluster bằng 1 lệnh**: tự lấy IP node, cài, kiểm tra, tạo/import dashboard |
+| `install.sh` | **Cài cả cluster bằng 1 lệnh**: hỏi InfluxDB (cập nhật Metric Server), tự lấy IP node, cài, kiểm tra, rồi hỏi Grafana và tên dashboard để import |
 | `deploy/CustomNetworkMetrics.pm` | Module Perl thu thập số liệu, được cài vào `/usr/share/perl5/PVE/` trên node |
 | `deploy/deploy-monitor-nic-proxmox.sh` | Script cài, kiểm tra, chẩn đoán và gỡ trên nhiều node qua SSH |
 | `deploy/nodes.txt` | Danh sách IP các node, mỗi dòng 1 IP (`install.sh` tự điền nếu để trống) |
 | `dashboard-grafana/proxmox-cluster-dashboard.json` | Dashboard Grafana mẫu (file duy nhất) |
-| `dashboard-grafana/import-dashboard.sh` | Tạo dashboard đúng bucket/datasource và import qua API Grafana |
+| `dashboard-grafana/import-dashboard.sh` | Hỏi InfluxDB → Grafana → datasource (chọn hoặc tạo mới) → tên dashboard, rồi import qua API Grafana |
+| `dashboard-grafana/influx-common.sh` | Hàm dùng chung: hỏi và kiểm tra thông tin InfluxDB |
 | `dashboard-grafana/export-dashboard.sh` | Lấy dashboard đang chạy trên Grafana, làm sạch, lưu lại vào repo |
 
 Nên `git clone` **cả repo** lên node: script trong `deploy/` dùng file dashboard ở `dashboard-grafana/`.
@@ -207,16 +208,15 @@ cd /root/monitor-nic-proxmox
 ./deploy-monitor-nic-proxmox.sh dashboard
 ```
 
-Lệnh này gọi `dashboard-grafana/import-dashboard.sh`. Kết quả: file `dashboard-grafana/dashboard-<bucket>.json` (ví dụ `dashboard-demo.json`), title `Proxmox Cluster <bucket>`, uid riêng nên không ghi đè dashboard của cluster khác. Mọi panel dùng biến datasource, không gắn cứng datasource của Grafana cũ. Chạy trên terminal, script sẽ hỏi URL và token Grafana; bỏ trống thì chỉ tạo file.
+Lệnh này gọi `dashboard-grafana/import-dashboard.sh`. Kết quả: file `dashboard-grafana/dashboard-<bucket>.json` (ví dụ `dashboard-demo.json`), title `Proxmox Cluster <bucket>`, uid riêng nên không ghi đè dashboard của cluster khác. Mọi panel dùng biến datasource, không gắn cứng datasource của Grafana cũ. Chạy trên terminal, script hỏi lần lượt: thông tin InfluxDB (mặc định lấy từ Metric Server), URL và token Grafana (bắt buộc, sai thì nhập lại), datasource (chọn datasource khớp InfluxDB hoặc tạo mới), cuối cùng là tên dashboard.
 
-**Cách 1: script import luôn** (cần token Grafana: Administration → Service accounts → Add → role Editor → Add token):
+**Cách 1: script hỏi rồi import luôn** (cần token Grafana: Administration → Service accounts → Add, role **Admin** nếu cần tạo datasource → Add token):
 
 ```bash
-export GRAFANA_URL=https://<IP-Grafana>:3000
-export GRAFANA_TOKEN='glsa_xxx'
-export GRAFANA_DS='ten-datasource-influxdb'   # tuy chon: ten datasource Flux tro toi bucket nay
 ./deploy-monitor-nic-proxmox.sh dashboard
 ```
+
+Chạy không hỏi thì đặt trước `INFLUX_URL`, `INFLUX_ORG`, `INFLUX_TOKEN`, `GRAFANA_URL`, `GRAFANA_TOKEN`, `DASH_TITLE` (xem [hướng dẫn import dashboard](../dashboard-grafana/Huong-Dan-Import-Dashboard-Grafana.md)).
 
 **Cách 2: import tay:** copy file về Windows rồi Dashboards → New → Import → Upload:
 
