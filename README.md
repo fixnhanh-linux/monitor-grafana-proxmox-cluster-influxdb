@@ -155,6 +155,7 @@ monitor-grafana-proxmox-cluster-influxdb/
     ├── 01-Huong-Dan-Trien-Khai-Monitor-NIC-Proxmox.md   Hướng dẫn từng bước
     ├── 02-Canh-Bao-Va-Xu-Ly-Su-Co-Card-Mang.md          Alert Grafana, đọc lỗi, xử lý sự cố, vận hành
     ├── 03-Cai-Dat-Thu-Cong-Patch-InfluxDB.md            Patch thủ công, giải thích nguyên lý
+    ├── 04-Kiem-Tra-Du-Lieu-Thu-Cong.md                  Đối chiếu dashboard với lệnh gốc trên node, InfluxDB
     └── images/                                          Sơ đồ SVG
 ```
 
@@ -360,7 +361,9 @@ Dashboard giữ các panel tổng quan của Proxmox (CPU, RAM, storage, VM) và
 
 **Màu tốc độ link:** xanh lá = UP đúng tốc độ tối đa của chính card đó (card 1G chạy 1G cũng xanh) · cam `(below max)` = UP nhưng chậm hơn khả năng của card, ví dụ card 25G chạy 10G (kiểm tra cáp/SFP/port switch) · đỏ = DOWN.
 
-Mỗi panel có nút ⓘ giải thích bằng tiếng Anh ý nghĩa và nguyên nhân thường gặp của từng loại lỗi.
+Muốn tự đối chiếu số liệu trên dashboard với thực tế trên node: xem [Kiểm tra thủ công dữ liệu](docs/04-Kiem-Tra-Du-Lieu-Thu-Cong.md).
+
+Tiêu đề và chữ trên panel bằng tiếng Anh. Mỗi panel có nút ⓘ giải thích ý nghĩa và nguyên nhân thường gặp; khu Corosync / card mạng (Corosync Links, UDP Packet Loss, NIC Link Status, Corosync Link Health, NIC Link Speed) giải thích bằng tiếng Việt.
 
 > **Cách đọc số:** số tích lũy (ví dụ `rx_errors = 67`) có thể là lỗi cũ từ lần boot trước. Hãy xem các biểu đồ **"new per interval"** để biết lỗi **còn đang phát sinh** hay không.
 
@@ -414,5 +417,6 @@ Bảng đầy đủ: [tài liệu cảnh báo và xử lý sự cố](docs/02-Ca
 | 01 | [Hướng dẫn triển khai Monitor NIC Proxmox](docs/01-Huong-Dan-Trien-Khai-Monitor-NIC-Proxmox.md) | Từng bước từ kiểm tra Metric Server tới cài toàn cluster, kết quả đúng và cách sửa ở mỗi bước |
 | 02 | [Cảnh báo và xử lý sự cố card mạng](docs/02-Canh-Bao-Va-Xu-Ly-Su-Co-Card-Mang.md) | Alert Grafana, ý nghĩa từng loại lỗi card mạng, quy trình xử lý lỗi CRC, vận hành, checklist |
 | 03 | [Cài đặt thủ công: patch InfluxDB.pm](docs/03-Cai-Dat-Thu-Cong-Patch-InfluxDB.md) | Patch tay `InfluxDB.pm`, giải thích nguyên lý hoạt động |
+| 04 | [Kiểm tra thủ công dữ liệu trên dashboard](docs/04-Kiem-Tra-Du-Lieu-Thu-Cong.md) | Với mỗi panel: lệnh chạy trên node (`corosync-cfgtool -s`, `ethtool`, `ip -s link`, `ovs-vsctl`…), giá trị cần khớp, truy vấn thẳng InfluxDB, cách xem dữ liệu thật của panel trên Grafana |
 
 > Không commit token Grafana/InfluxDB hay IP thật vào repo.

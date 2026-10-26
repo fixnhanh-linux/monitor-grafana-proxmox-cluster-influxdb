@@ -249,6 +249,8 @@ Mở dashboard, chọn **Datasource** (datasource InfluxDB Flux trỏ tới buck
 
 Mọi node `[OK]`; trên Grafana đổi Server qua từng node đều có số liệu.
 
+Muốn chắc số liệu trên dashboard đúng với thực tế (Corosync, tốc độ card, bộ đếm lỗi, UDP), đối chiếu từng panel với lệnh gốc theo [Kiểm tra thủ công dữ liệu](04-Kiem-Tra-Du-Lieu-Thu-Cong.md).
+
 Không truyền tham số (`./deploy-monitor-nic-proxmox.sh check`) thì script tự dùng `nodes.txt` nằm cùng thư mục với script, chạy ở thư mục nào cũng được. Khi dùng `-f` thì phải có tên file ngay sau: `-f nodes.txt`.
 
 ### Chẩn đoán khi Grafana không có số liệu
