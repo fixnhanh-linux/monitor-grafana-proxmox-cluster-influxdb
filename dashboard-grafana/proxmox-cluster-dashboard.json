@@ -700,7 +700,7 @@
             {
               "type": "regex",
               "options": {
-                "pattern": "UP",
+                "pattern": "/UP/",
                 "result": {
                   "color": "#56A64B",
                   "index": 0
@@ -710,7 +710,7 @@
             {
               "type": "regex",
               "options": {
-                "pattern": "DEGRADED",
+                "pattern": "/DEGRADED/",
                 "result": {
                   "color": "#FF9830",
                   "index": 1
@@ -720,7 +720,7 @@
             {
               "type": "regex",
               "options": {
-                "pattern": "DOWN",
+                "pattern": "/DOWN/",
                 "result": {
                   "color": "#F2495C",
                   "index": 2
@@ -1824,7 +1824,7 @@
         "type": "influxdb",
         "uid": "${dsProxmox}"
       },
-      "description": "State of each corosync link over time and the interface it runs on, e.g. \"link0 (vmbr0)\", \"link1 (nic2)\". Value = nodes reachable on that link.\n✔ green \"UP 2/2 nodes\" = reaches every node\n▲ orange DEGRADED = some nodes unreachable\n⛔ red DOWN = no node reachable",
+      "description": "State of each corosync link over time and the interface it runs on, e.g. \"link0 (vmbr0)\", \"link1 (nic2)\". Value = nodes reachable on that link. \"(no local IP)\" = this node has no interface with the link address (link not configured on this node / interface down or without IP).\n✔ green \"UP 2/2 nodes\" = reaches every node\n▲ orange DEGRADED = some nodes unreachable\n⛔ red DOWN = no node reachable",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1849,7 +1849,7 @@
             {
               "type": "regex",
               "options": {
-                "pattern": "UP",
+                "pattern": "/UP/",
                 "result": {
                   "color": "#56A64B",
                   "index": 0
@@ -1859,7 +1859,7 @@
             {
               "type": "regex",
               "options": {
-                "pattern": "DEGRADED",
+                "pattern": "/DEGRADED/",
                 "result": {
                   "color": "#FF9830",
                   "index": 1
@@ -1869,7 +1869,7 @@
             {
               "type": "regex",
               "options": {
-                "pattern": "DOWN",
+                "pattern": "/DOWN/",
                 "result": {
                   "color": "#F2495C",
                   "index": 2
@@ -1906,7 +1906,7 @@
           "showLegend": false
         },
         "mergeValues": true,
-        "rowHeight": 0.7,
+        "rowHeight": 0.8,
         "showValue": "always",
         "tooltip": {
           "hideZeros": false,
@@ -1921,7 +1921,7 @@
             "type": "influxdb",
             "uid": "${dsProxmox}"
           },
-          "query": "import \"strings\"\n\nfrom(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"system\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] =~ /^corosync_link[0-9]+_(connected|peers|iface)$/)\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> map(fn: (r) => ({ _time: r._time, _value: string(v: r._value),\n      link: strings.split(v: r._field, t: \"_\")[1], metric: strings.split(v: r._field, t: \"_\")[2] }))\n  |> group(columns: [\"link\"])\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"metric\"], valueColumn: \"_value\")\n  |> map(fn: (r) => {\n      c = if exists r.connected then int(v: r.connected) else 0\n      n = if exists r.peers then int(v: r.peers) else 0\n      iface = if exists r.iface then r.iface else \"?\"\n      state = if n > 0 and c == n then \"✔ UP\" else if c > 0 then \"▲ DEGRADED\" else \"⛔ DOWN\"\n      return { _time: r._time, link: r.link + \" (\" + iface + \")\",\n               _value: state + \" \" + string(v: c) + \"/\" + string(v: n) + \" nodes\" }\n  })\n  |> group(columns: [\"link\"])",
+          "query": "import \"strings\"\n\nfrom(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"system\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] =~ /^corosync_link[0-9]+_(connected|peers|iface)$/)\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> map(fn: (r) => ({ _time: r._time, _value: string(v: r._value),\n      link: strings.split(v: r._field, t: \"_\")[1], metric: strings.split(v: r._field, t: \"_\")[2] }))\n  |> group(columns: [\"link\"])\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"metric\"], valueColumn: \"_value\")\n  |> map(fn: (r) => {\n      c = if exists r.connected then int(v: r.connected) else 0\n      n = if exists r.peers then int(v: r.peers) else 0\n      iface = if exists r.iface then r.iface else \"no local IP\"\n      state = if n > 0 and c == n then \"✔ UP\" else if c > 0 then \"▲ DEGRADED\" else \"⛔ DOWN\"\n      return { _time: r._time, link: r.link + \" (\" + iface + \")\",\n               _value: state + \" \" + string(v: c) + \"/\" + string(v: n) + \" nodes\" }\n  })\n  |> group(columns: [\"link\"])",
           "refId": "A"
         }
       ],
