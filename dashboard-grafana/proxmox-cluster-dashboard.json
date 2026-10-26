@@ -692,19 +692,48 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "fixed",
+            "fixedColor": "text"
           },
-          "mappings": [],
+          "displayName": "Corosync links",
+          "mappings": [
+            {
+              "type": "regex",
+              "options": {
+                "pattern": "UP",
+                "result": {
+                  "color": "#56A64B",
+                  "index": 0
+                }
+              }
+            },
+            {
+              "type": "regex",
+              "options": {
+                "pattern": "DEGRADED",
+                "result": {
+                  "color": "#FF9830",
+                  "index": 1
+                }
+              }
+            },
+            {
+              "type": "regex",
+              "options": {
+                "pattern": "DOWN",
+                "result": {
+                  "color": "#F2495C",
+                  "index": 2
+                }
+              }
+            }
+          ],
+          "noValue": "No corosync link data (re-run install)",
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "dark-red",
-                "value": 0
-              },
-              {
-                "color": "dark-green",
-                "value": 1
+                "color": "text"
               }
             ]
           }
@@ -719,21 +748,21 @@
       },
       "id": 9991,
       "options": {
-        "colorMode": "value",
+        "colorMode": "background",
         "graphMode": "none",
-        "justifyMode": "auto",
+        "justifyMode": "center",
         "orientation": "auto",
         "percentChangeColorMode": "standard",
+        "showPercentChange": false,
+        "textMode": "value",
+        "wideLayout": true,
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "",
+          "fields": "/.*/",
           "values": false
-        },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
+        }
       },
       "pluginVersion": "13.2.0",
       "targets": [
@@ -742,12 +771,13 @@
             "type": "influxdb",
             "uid": "${dsProxmox}"
           },
-          "query": "from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"system\")\n  |> filter(fn: (r) => r[\"_field\"] == \"corosync_conn\")\n  |> filter(fn: (r) => r[\"host\"] == \"${server}\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> yield(name: \"last\")",
+          "query": "from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"system\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"corosync_links\" or r[\"_field\"] == \"corosync_links_up\")\n  |> last()\n  |> keep(columns: [\"host\", \"_field\", \"_value\"])\n  |> group()\n  |> pivot(rowKey: [\"host\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> map(fn: (r) => {\n      total = if exists r.corosync_links then int(v: r.corosync_links) else 0\n      up = if exists r.corosync_links_up then int(v: r.corosync_links_up) else 0\n      ratio = string(v: up) + \"/\" + string(v: total)\n      return { host: r.host, _value: if up == total then \"✔ UP \" + ratio\n                                     else if up == 0 then \"⛔ DOWN \" + ratio else \"▲ DEGRADED \" + ratio }\n  })\n  |> group(columns: [\"host\"])",
           "refId": "A"
         }
       ],
-      "title": "Corosync Connections",
-      "type": "stat"
+      "title": "Corosync Links",
+      "type": "stat",
+      "description": "Corosync links (link0, link1...) that reach every other cluster node, from \"corosync-cfgtool -s\".\n✔ green \"UP 2/2\" = all links healthy\n▲ orange \"DEGRADED 1/2\" = a link lost at least one node (cluster still runs on the other link)\n⛔ red \"DOWN\" = no link reaches the other nodes. See \"Corosync Link Timeline\"."
     },
     {
       "datasource": {
@@ -819,7 +849,7 @@
         "type": "influxdb",
         "uid": "${dsProxmox}"
       },
-      "description": "One row per physical NIC (≥10G). [xxG] = max speed of the card.\n✔ green \"UP 10G\" = link up, no errors\n⚠ yellow \"UP · 1–99 Errors\" = link up but new RX/TX errors in that interval\n▲ orange \"UP · 100–999 Errors\" / UP below 10G\n⛔ red \"UP · 1K+ Errors\" or \"DOWN\" = link down / severe errors\nErrors counted: CRC, Length, Missed, Overrun, FIFO, Frame, Carrier, Aborted, Heartbeat, Window, Collisions. See \"NIC RX/TX Errors (Per Interval)\" for details.",
+      "description": "One row per physical NIC (1G, 10G, 25G...). [xxG] = max speed of the card.\n✔ green \"UP 10G\" = link up at the card's own max speed, no errors\n▲ orange \"UP 10G (below max)\" = link up but slower than the card supports (check cable/SFP/switch port)\n⚠ yellow \"· 1–99 Errors\" = new RX/TX errors in that interval\n▲ orange \"· 100–999 Errors\"\n⛔ red \"· 1K+ Errors\" or \"DOWN\" = link down / severe errors\nErrors counted: CRC, Length, Missed, Overrun, FIFO, Frame, Carrier, Aborted, Heartbeat, Window, Collisions.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -869,7 +899,7 @@
               "options": {
                 "from": 99.95,
                 "result": {
-                  "color": "#FF9830",
+                  "color": "#56A64B",
                   "index": 2,
                   "text": "✔ UP 100M"
                 },
@@ -879,10 +909,22 @@
             },
             {
               "options": {
+                "from": -100.05,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 3,
+                  "text": "▲ UP 100M (below max)"
+                },
+                "to": -99.95
+              },
+              "type": "range"
+            },
+            {
+              "options": {
                 "from": 100.05,
                 "result": {
                   "color": "#FADE2A",
-                  "index": 3,
+                  "index": 4,
                   "text": "⚠ UP 100M · 1–99 Errors"
                 },
                 "to": 100.15
@@ -891,10 +933,22 @@
             },
             {
               "options": {
+                "from": -100.15,
+                "result": {
+                  "color": "#FADE2A",
+                  "index": 5,
+                  "text": "⚠ UP 100M (below max) · 1–99 Errors"
+                },
+                "to": -100.05
+              },
+              "type": "range"
+            },
+            {
+              "options": {
                 "from": 100.15,
                 "result": {
                   "color": "#FF9830",
-                  "index": 4,
+                  "index": 6,
                   "text": "▲ UP 100M · 100–999 Errors"
                 },
                 "to": 100.25
@@ -903,10 +957,22 @@
             },
             {
               "options": {
+                "from": -100.25,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 7,
+                  "text": "▲ UP 100M (below max) · 100–999 Errors"
+                },
+                "to": -100.15
+              },
+              "type": "range"
+            },
+            {
+              "options": {
                 "from": 100.25,
                 "result": {
                   "color": "#F2495C",
-                  "index": 5,
+                  "index": 8,
                   "text": "⛔ UP 100M · 1K+ Errors"
                 },
                 "to": 100.35
@@ -915,10 +981,22 @@
             },
             {
               "options": {
+                "from": -100.35,
+                "result": {
+                  "color": "#F2495C",
+                  "index": 9,
+                  "text": "⛔ UP 100M (below max) · 1K+ Errors"
+                },
+                "to": -100.25
+              },
+              "type": "range"
+            },
+            {
+              "options": {
                 "from": 999.95,
                 "result": {
-                  "color": "#FF9830",
-                  "index": 6,
+                  "color": "#56A64B",
+                  "index": 10,
                   "text": "✔ UP 1G"
                 },
                 "to": 1000.05
@@ -927,10 +1005,22 @@
             },
             {
               "options": {
+                "from": -1000.05,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 11,
+                  "text": "▲ UP 1G (below max)"
+                },
+                "to": -999.95
+              },
+              "type": "range"
+            },
+            {
+              "options": {
                 "from": 1000.05,
                 "result": {
                   "color": "#FADE2A",
-                  "index": 7,
+                  "index": 12,
                   "text": "⚠ UP 1G · 1–99 Errors"
                 },
                 "to": 1000.15
@@ -939,10 +1029,22 @@
             },
             {
               "options": {
+                "from": -1000.15,
+                "result": {
+                  "color": "#FADE2A",
+                  "index": 13,
+                  "text": "⚠ UP 1G (below max) · 1–99 Errors"
+                },
+                "to": -1000.05
+              },
+              "type": "range"
+            },
+            {
+              "options": {
                 "from": 1000.15,
                 "result": {
                   "color": "#FF9830",
-                  "index": 8,
+                  "index": 14,
                   "text": "▲ UP 1G · 100–999 Errors"
                 },
                 "to": 1000.25
@@ -951,10 +1053,22 @@
             },
             {
               "options": {
+                "from": -1000.25,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 15,
+                  "text": "▲ UP 1G (below max) · 100–999 Errors"
+                },
+                "to": -1000.15
+              },
+              "type": "range"
+            },
+            {
+              "options": {
                 "from": 1000.25,
                 "result": {
                   "color": "#F2495C",
-                  "index": 9,
+                  "index": 16,
                   "text": "⛔ UP 1G · 1K+ Errors"
                 },
                 "to": 1000.35
@@ -963,10 +1077,22 @@
             },
             {
               "options": {
+                "from": -1000.35,
+                "result": {
+                  "color": "#F2495C",
+                  "index": 17,
+                  "text": "⛔ UP 1G (below max) · 1K+ Errors"
+                },
+                "to": -1000.25
+              },
+              "type": "range"
+            },
+            {
+              "options": {
                 "from": 2499.95,
                 "result": {
-                  "color": "#FF9830",
-                  "index": 10,
+                  "color": "#56A64B",
+                  "index": 18,
                   "text": "✔ UP 2.5G"
                 },
                 "to": 2500.05
@@ -975,10 +1101,22 @@
             },
             {
               "options": {
+                "from": -2500.05,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 19,
+                  "text": "▲ UP 2.5G (below max)"
+                },
+                "to": -2499.95
+              },
+              "type": "range"
+            },
+            {
+              "options": {
                 "from": 2500.05,
                 "result": {
                   "color": "#FADE2A",
-                  "index": 11,
+                  "index": 20,
                   "text": "⚠ UP 2.5G · 1–99 Errors"
                 },
                 "to": 2500.15
@@ -987,10 +1125,22 @@
             },
             {
               "options": {
+                "from": -2500.15,
+                "result": {
+                  "color": "#FADE2A",
+                  "index": 21,
+                  "text": "⚠ UP 2.5G (below max) · 1–99 Errors"
+                },
+                "to": -2500.05
+              },
+              "type": "range"
+            },
+            {
+              "options": {
                 "from": 2500.15,
                 "result": {
                   "color": "#FF9830",
-                  "index": 12,
+                  "index": 22,
                   "text": "▲ UP 2.5G · 100–999 Errors"
                 },
                 "to": 2500.25
@@ -999,10 +1149,22 @@
             },
             {
               "options": {
+                "from": -2500.25,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 23,
+                  "text": "▲ UP 2.5G (below max) · 100–999 Errors"
+                },
+                "to": -2500.15
+              },
+              "type": "range"
+            },
+            {
+              "options": {
                 "from": 2500.25,
                 "result": {
                   "color": "#F2495C",
-                  "index": 13,
+                  "index": 24,
                   "text": "⛔ UP 2.5G · 1K+ Errors"
                 },
                 "to": 2500.35
@@ -1011,10 +1173,22 @@
             },
             {
               "options": {
+                "from": -2500.35,
+                "result": {
+                  "color": "#F2495C",
+                  "index": 25,
+                  "text": "⛔ UP 2.5G (below max) · 1K+ Errors"
+                },
+                "to": -2500.25
+              },
+              "type": "range"
+            },
+            {
+              "options": {
                 "from": 4999.95,
                 "result": {
-                  "color": "#FF9830",
-                  "index": 14,
+                  "color": "#56A64B",
+                  "index": 26,
                   "text": "✔ UP 5G"
                 },
                 "to": 5000.05
@@ -1023,10 +1197,22 @@
             },
             {
               "options": {
+                "from": -5000.05,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 27,
+                  "text": "▲ UP 5G (below max)"
+                },
+                "to": -4999.95
+              },
+              "type": "range"
+            },
+            {
+              "options": {
                 "from": 5000.05,
                 "result": {
                   "color": "#FADE2A",
-                  "index": 15,
+                  "index": 28,
                   "text": "⚠ UP 5G · 1–99 Errors"
                 },
                 "to": 5000.15
@@ -1035,10 +1221,22 @@
             },
             {
               "options": {
+                "from": -5000.15,
+                "result": {
+                  "color": "#FADE2A",
+                  "index": 29,
+                  "text": "⚠ UP 5G (below max) · 1–99 Errors"
+                },
+                "to": -5000.05
+              },
+              "type": "range"
+            },
+            {
+              "options": {
                 "from": 5000.15,
                 "result": {
                   "color": "#FF9830",
-                  "index": 16,
+                  "index": 30,
                   "text": "▲ UP 5G · 100–999 Errors"
                 },
                 "to": 5000.25
@@ -1047,10 +1245,22 @@
             },
             {
               "options": {
+                "from": -5000.25,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 31,
+                  "text": "▲ UP 5G (below max) · 100–999 Errors"
+                },
+                "to": -5000.15
+              },
+              "type": "range"
+            },
+            {
+              "options": {
                 "from": 5000.25,
                 "result": {
                   "color": "#F2495C",
-                  "index": 17,
+                  "index": 32,
                   "text": "⛔ UP 5G · 1K+ Errors"
                 },
                 "to": 5000.35
@@ -1059,10 +1269,22 @@
             },
             {
               "options": {
+                "from": -5000.35,
+                "result": {
+                  "color": "#F2495C",
+                  "index": 33,
+                  "text": "⛔ UP 5G (below max) · 1K+ Errors"
+                },
+                "to": -5000.25
+              },
+              "type": "range"
+            },
+            {
+              "options": {
                 "from": 9999.95,
                 "result": {
                   "color": "#56A64B",
-                  "index": 18,
+                  "index": 34,
                   "text": "✔ UP 10G"
                 },
                 "to": 10000.05
@@ -1071,10 +1293,22 @@
             },
             {
               "options": {
+                "from": -10000.05,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 35,
+                  "text": "▲ UP 10G (below max)"
+                },
+                "to": -9999.95
+              },
+              "type": "range"
+            },
+            {
+              "options": {
                 "from": 10000.05,
                 "result": {
                   "color": "#FADE2A",
-                  "index": 19,
+                  "index": 36,
                   "text": "⚠ UP 10G · 1–99 Errors"
                 },
                 "to": 10000.15
@@ -1083,10 +1317,22 @@
             },
             {
               "options": {
+                "from": -10000.15,
+                "result": {
+                  "color": "#FADE2A",
+                  "index": 37,
+                  "text": "⚠ UP 10G (below max) · 1–99 Errors"
+                },
+                "to": -10000.05
+              },
+              "type": "range"
+            },
+            {
+              "options": {
                 "from": 10000.15,
                 "result": {
                   "color": "#FF9830",
-                  "index": 20,
+                  "index": 38,
                   "text": "▲ UP 10G · 100–999 Errors"
                 },
                 "to": 10000.25
@@ -1095,10 +1341,22 @@
             },
             {
               "options": {
+                "from": -10000.25,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 39,
+                  "text": "▲ UP 10G (below max) · 100–999 Errors"
+                },
+                "to": -10000.15
+              },
+              "type": "range"
+            },
+            {
+              "options": {
                 "from": 10000.25,
                 "result": {
                   "color": "#F2495C",
-                  "index": 21,
+                  "index": 40,
                   "text": "⛔ UP 10G · 1K+ Errors"
                 },
                 "to": 10000.35
@@ -1107,10 +1365,22 @@
             },
             {
               "options": {
+                "from": -10000.35,
+                "result": {
+                  "color": "#F2495C",
+                  "index": 41,
+                  "text": "⛔ UP 10G (below max) · 1K+ Errors"
+                },
+                "to": -10000.25
+              },
+              "type": "range"
+            },
+            {
+              "options": {
                 "from": 24999.95,
                 "result": {
                   "color": "#56A64B",
-                  "index": 22,
+                  "index": 42,
                   "text": "✔ UP 25G"
                 },
                 "to": 25000.05
@@ -1119,10 +1389,22 @@
             },
             {
               "options": {
+                "from": -25000.05,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 43,
+                  "text": "▲ UP 25G (below max)"
+                },
+                "to": -24999.95
+              },
+              "type": "range"
+            },
+            {
+              "options": {
                 "from": 25000.05,
                 "result": {
                   "color": "#FADE2A",
-                  "index": 23,
+                  "index": 44,
                   "text": "⚠ UP 25G · 1–99 Errors"
                 },
                 "to": 25000.15
@@ -1131,10 +1413,22 @@
             },
             {
               "options": {
+                "from": -25000.15,
+                "result": {
+                  "color": "#FADE2A",
+                  "index": 45,
+                  "text": "⚠ UP 25G (below max) · 1–99 Errors"
+                },
+                "to": -25000.05
+              },
+              "type": "range"
+            },
+            {
+              "options": {
                 "from": 25000.15,
                 "result": {
                   "color": "#FF9830",
-                  "index": 24,
+                  "index": 46,
                   "text": "▲ UP 25G · 100–999 Errors"
                 },
                 "to": 25000.25
@@ -1143,10 +1437,22 @@
             },
             {
               "options": {
+                "from": -25000.25,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 47,
+                  "text": "▲ UP 25G (below max) · 100–999 Errors"
+                },
+                "to": -25000.15
+              },
+              "type": "range"
+            },
+            {
+              "options": {
                 "from": 25000.25,
                 "result": {
                   "color": "#F2495C",
-                  "index": 25,
+                  "index": 48,
                   "text": "⛔ UP 25G · 1K+ Errors"
                 },
                 "to": 25000.35
@@ -1155,10 +1461,22 @@
             },
             {
               "options": {
+                "from": -25000.35,
+                "result": {
+                  "color": "#F2495C",
+                  "index": 49,
+                  "text": "⛔ UP 25G (below max) · 1K+ Errors"
+                },
+                "to": -25000.25
+              },
+              "type": "range"
+            },
+            {
+              "options": {
                 "from": 39999.95,
                 "result": {
                   "color": "#56A64B",
-                  "index": 26,
+                  "index": 50,
                   "text": "✔ UP 40G"
                 },
                 "to": 40000.05
@@ -1167,10 +1485,22 @@
             },
             {
               "options": {
+                "from": -40000.05,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 51,
+                  "text": "▲ UP 40G (below max)"
+                },
+                "to": -39999.95
+              },
+              "type": "range"
+            },
+            {
+              "options": {
                 "from": 40000.05,
                 "result": {
                   "color": "#FADE2A",
-                  "index": 27,
+                  "index": 52,
                   "text": "⚠ UP 40G · 1–99 Errors"
                 },
                 "to": 40000.15
@@ -1179,10 +1509,22 @@
             },
             {
               "options": {
+                "from": -40000.15,
+                "result": {
+                  "color": "#FADE2A",
+                  "index": 53,
+                  "text": "⚠ UP 40G (below max) · 1–99 Errors"
+                },
+                "to": -40000.05
+              },
+              "type": "range"
+            },
+            {
+              "options": {
                 "from": 40000.15,
                 "result": {
                   "color": "#FF9830",
-                  "index": 28,
+                  "index": 54,
                   "text": "▲ UP 40G · 100–999 Errors"
                 },
                 "to": 40000.25
@@ -1191,10 +1533,22 @@
             },
             {
               "options": {
+                "from": -40000.25,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 55,
+                  "text": "▲ UP 40G (below max) · 100–999 Errors"
+                },
+                "to": -40000.15
+              },
+              "type": "range"
+            },
+            {
+              "options": {
                 "from": 40000.25,
                 "result": {
                   "color": "#F2495C",
-                  "index": 29,
+                  "index": 56,
                   "text": "⛔ UP 40G · 1K+ Errors"
                 },
                 "to": 40000.35
@@ -1203,10 +1557,22 @@
             },
             {
               "options": {
+                "from": -40000.35,
+                "result": {
+                  "color": "#F2495C",
+                  "index": 57,
+                  "text": "⛔ UP 40G (below max) · 1K+ Errors"
+                },
+                "to": -40000.25
+              },
+              "type": "range"
+            },
+            {
+              "options": {
                 "from": 49999.95,
                 "result": {
                   "color": "#56A64B",
-                  "index": 30,
+                  "index": 58,
                   "text": "✔ UP 50G"
                 },
                 "to": 50000.05
@@ -1215,10 +1581,22 @@
             },
             {
               "options": {
+                "from": -50000.05,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 59,
+                  "text": "▲ UP 50G (below max)"
+                },
+                "to": -49999.95
+              },
+              "type": "range"
+            },
+            {
+              "options": {
                 "from": 50000.05,
                 "result": {
                   "color": "#FADE2A",
-                  "index": 31,
+                  "index": 60,
                   "text": "⚠ UP 50G · 1–99 Errors"
                 },
                 "to": 50000.15
@@ -1227,10 +1605,22 @@
             },
             {
               "options": {
+                "from": -50000.15,
+                "result": {
+                  "color": "#FADE2A",
+                  "index": 61,
+                  "text": "⚠ UP 50G (below max) · 1–99 Errors"
+                },
+                "to": -50000.05
+              },
+              "type": "range"
+            },
+            {
+              "options": {
                 "from": 50000.15,
                 "result": {
                   "color": "#FF9830",
-                  "index": 32,
+                  "index": 62,
                   "text": "▲ UP 50G · 100–999 Errors"
                 },
                 "to": 50000.25
@@ -1239,10 +1629,22 @@
             },
             {
               "options": {
+                "from": -50000.25,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 63,
+                  "text": "▲ UP 50G (below max) · 100–999 Errors"
+                },
+                "to": -50000.15
+              },
+              "type": "range"
+            },
+            {
+              "options": {
                 "from": 50000.25,
                 "result": {
                   "color": "#F2495C",
-                  "index": 33,
+                  "index": 64,
                   "text": "⛔ UP 50G · 1K+ Errors"
                 },
                 "to": 50000.35
@@ -1251,10 +1653,22 @@
             },
             {
               "options": {
+                "from": -50000.35,
+                "result": {
+                  "color": "#F2495C",
+                  "index": 65,
+                  "text": "⛔ UP 50G (below max) · 1K+ Errors"
+                },
+                "to": -50000.25
+              },
+              "type": "range"
+            },
+            {
+              "options": {
                 "from": 99999.95,
                 "result": {
                   "color": "#56A64B",
-                  "index": 34,
+                  "index": 66,
                   "text": "✔ UP 100G"
                 },
                 "to": 100000.05
@@ -1263,10 +1677,22 @@
             },
             {
               "options": {
+                "from": -100000.05,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 67,
+                  "text": "▲ UP 100G (below max)"
+                },
+                "to": -99999.95
+              },
+              "type": "range"
+            },
+            {
+              "options": {
                 "from": 100000.05,
                 "result": {
                   "color": "#FADE2A",
-                  "index": 35,
+                  "index": 68,
                   "text": "⚠ UP 100G · 1–99 Errors"
                 },
                 "to": 100000.15
@@ -1275,10 +1701,22 @@
             },
             {
               "options": {
+                "from": -100000.15,
+                "result": {
+                  "color": "#FADE2A",
+                  "index": 69,
+                  "text": "⚠ UP 100G (below max) · 1–99 Errors"
+                },
+                "to": -100000.05
+              },
+              "type": "range"
+            },
+            {
+              "options": {
                 "from": 100000.15,
                 "result": {
                   "color": "#FF9830",
-                  "index": 36,
+                  "index": 70,
                   "text": "▲ UP 100G · 100–999 Errors"
                 },
                 "to": 100000.25
@@ -1287,13 +1725,37 @@
             },
             {
               "options": {
+                "from": -100000.25,
+                "result": {
+                  "color": "#FF9830",
+                  "index": 71,
+                  "text": "▲ UP 100G (below max) · 100–999 Errors"
+                },
+                "to": -100000.15
+              },
+              "type": "range"
+            },
+            {
+              "options": {
                 "from": 100000.25,
                 "result": {
                   "color": "#F2495C",
-                  "index": 37,
+                  "index": 72,
                   "text": "⛔ UP 100G · 1K+ Errors"
                 },
                 "to": 100000.35
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": -100000.35,
+                "result": {
+                  "color": "#F2495C",
+                  "index": 73,
+                  "text": "⛔ UP 100G (below max) · 1K+ Errors"
+                },
+                "to": -100000.25
               },
               "type": "range"
             }
@@ -1350,11 +1812,11 @@
             "type": "influxdb",
             "uid": "${dsProxmox}"
           },
-          "query": "import \"join\"\n\nphys = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"link_speed_max\")\n  |> keep(columns: [\"instance\"])\n  |> group()\n  |> distinct(column: \"instance\")\n  |> findColumn(fn: (key) => true, column: \"_value\")\n\nlink = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"network_up\" or r[\"_field\"] == \"link_speed\" or r[\"_field\"] == \"link_speed_max\")\n  |> filter(fn: (r) => contains(value: r.instance, set: phys))\n  |> group(columns: [\"instance\", \"_field\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> group(columns: [\"instance\"], mode: \"by\")\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> sort(columns: [\"_time\"])\n  |> fill(column: \"link_speed_max\", usePrevious: true)\n  |> filter(fn: (r) => exists r.link_speed_max and r.link_speed_max >= 10000.0)\n  |> map(fn: (r) => ({ _time: r._time, instance: r.instance, mx: r.link_speed_max,\n      lv: if exists r.network_up and r.network_up == 1.0\n          then (if exists r.link_speed and r.link_speed > 0.0 then r.link_speed else 1.0) else 0.0 }))\n  |> group()\n\nerr = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] =~ /^(rx_crc_errors|rx_length_errors|rx_missed_errors|rx_over_errors|rx_fifo_errors|rx_frame_errors|tx_carrier_errors|tx_aborted_errors|tx_fifo_errors|tx_heartbeat_errors|tx_window_errors|collisions)$/)\n  |> filter(fn: (r) => contains(value: r.instance, set: phys))\n  |> group(columns: [\"instance\", \"_field\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> difference(nonNegative: true)\n  |> group(columns: [\"instance\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: sum, createEmpty: false)\n  |> map(fn: (r) => ({ _time: r._time, instance: r.instance, ev: r._value }))\n  |> group()\n\njoin.left(left: link, right: err,\n    on: (l, r) => l._time == r._time and l.instance == r.instance,\n    as: (l, r) => {\n        e = if exists r.ev then r.ev else 0.0\n        b = if e >= 1000.0 then 0.3 else if e >= 100.0 then 0.2 else if e >= 1.0 then 0.1 else 0.0\n        return { _time: l._time, nic: l.instance + \" [\" + string(v: l.mx / 1000.0) + \"G]\",\n                 _value: if l.lv == 0.0 then 0.0 else l.lv + b }\n    })\n  |> group(columns: [\"nic\"], mode: \"by\")\n  |> sort(columns: [\"_time\"])\n  |> yield(name: \"status\")",
+          "query": "import \"join\"\n\nphys = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"link_speed_max\")\n  |> keep(columns: [\"instance\"])\n  |> group()\n  |> distinct(column: \"instance\")\n  |> findColumn(fn: (key) => true, column: \"_value\")\n\nlink = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"network_up\" or r[\"_field\"] == \"link_speed\" or r[\"_field\"] == \"link_speed_max\")\n  |> filter(fn: (r) => contains(value: r.instance, set: phys))\n  |> group(columns: [\"instance\", \"_field\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> group(columns: [\"instance\"], mode: \"by\")\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> sort(columns: [\"_time\"])\n  |> fill(column: \"link_speed_max\", usePrevious: true)\n  |> filter(fn: (r) => exists r.link_speed_max and r.link_speed_max > 0.0)\n  |> map(fn: (r) => ({ _time: r._time, instance: r.instance, mx: r.link_speed_max,\n      lv: if exists r.network_up and r.network_up == 1.0\n          then (if exists r.link_speed and r.link_speed > 0.0 then r.link_speed else 1.0) else 0.0 }))\n  |> group()\n\nerr = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] =~ /^(rx_crc_errors|rx_length_errors|rx_missed_errors|rx_over_errors|rx_fifo_errors|rx_frame_errors|tx_carrier_errors|tx_aborted_errors|tx_fifo_errors|tx_heartbeat_errors|tx_window_errors|collisions)$/)\n  |> filter(fn: (r) => contains(value: r.instance, set: phys))\n  |> group(columns: [\"instance\", \"_field\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> difference(nonNegative: true)\n  |> group(columns: [\"instance\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: sum, createEmpty: false)\n  |> map(fn: (r) => ({ _time: r._time, instance: r.instance, ev: r._value }))\n  |> group()\n\njoin.left(left: link, right: err,\n    on: (l, r) => l._time == r._time and l.instance == r.instance,\n    as: (l, r) => {\n        e = if exists r.ev then r.ev else 0.0\n        b = if e >= 1000.0 then 0.3 else if e >= 100.0 then 0.2 else if e >= 1.0 then 0.1 else 0.0\n        return { _time: l._time, nic: l.instance + \" [\" + string(v: l.mx / 1000.0) + \"G]\",\n                 // below the card max speed (e.g. 25G card at 10G) -> negative, shown orange\n                 _value: if l.lv == 0.0 then 0.0\n                         else if l.lv > 1.0 and l.lv < l.mx then -(l.lv + b) else l.lv + b }\n    })\n  |> group(columns: [\"nic\"], mode: \"by\")\n  |> sort(columns: [\"_time\"])\n  |> yield(name: \"status\")",
           "refId": "A"
         }
       ],
-      "title": "NIC Link Status (10G+)",
+      "title": "NIC Link Status",
       "type": "state-timeline"
     },
     {
@@ -1362,7 +1824,116 @@
         "type": "influxdb",
         "uid": "${dsProxmox}"
       },
-      "description": "Negotiated link speed of each physical NIC over time. Flat line = stable. Drop to 0 = link DOWN. Step down = speed renegotiated (e.g. 10G → 1G). Green dashed line = 10G target. [xxG] = max speed of the card. Min column: if it shows 0, the link went down in the selected time range.",
+      "description": "State of each corosync link over time and the interface it runs on, e.g. \"link0 (vmbr0)\", \"link1 (nic2)\". Value = nodes reachable on that link.\n✔ green \"UP 2/2 nodes\" = reaches every node\n▲ orange DEGRADED = some nodes unreachable\n⛔ red DOWN = no node reachable",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          },
+          "custom": {
+            "axisPlacement": "auto",
+            "fillOpacity": 85,
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineWidth": 1,
+            "spanNulls": false
+          },
+          "decimals": 1,
+          "displayName": "${__field.labels.link}",
+          "mappings": [
+            {
+              "type": "regex",
+              "options": {
+                "pattern": "UP",
+                "result": {
+                  "color": "#56A64B",
+                  "index": 0
+                }
+              }
+            },
+            {
+              "type": "regex",
+              "options": {
+                "pattern": "DEGRADED",
+                "result": {
+                  "color": "#FF9830",
+                  "index": 1
+                }
+              }
+            },
+            {
+              "type": "regex",
+              "options": {
+                "pattern": "DOWN",
+                "result": {
+                  "color": "#F2495C",
+                  "index": 2
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text"
+              }
+            ]
+          },
+          "unit": "none",
+          "noValue": "No corosync link data (re-run install)"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 13
+      },
+      "id": 10003,
+      "interval": "1m",
+      "options": {
+        "alignValue": "center",
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "mergeValues": true,
+        "rowHeight": 0.7,
+        "showValue": "always",
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "13.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${dsProxmox}"
+          },
+          "query": "import \"strings\"\n\nfrom(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"system\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] =~ /^corosync_link[0-9]+_(connected|peers|iface)$/)\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> map(fn: (r) => ({ _time: r._time, _value: string(v: r._value),\n      link: strings.split(v: r._field, t: \"_\")[1], metric: strings.split(v: r._field, t: \"_\")[2] }))\n  |> group(columns: [\"link\"])\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"metric\"], valueColumn: \"_value\")\n  |> map(fn: (r) => {\n      c = if exists r.connected then int(v: r.connected) else 0\n      n = if exists r.peers then int(v: r.peers) else 0\n      iface = if exists r.iface then r.iface else \"?\"\n      state = if n > 0 and c == n then \"✔ UP\" else if c > 0 then \"▲ DEGRADED\" else \"⛔ DOWN\"\n      return { _time: r._time, link: r.link + \" (\" + iface + \")\",\n               _value: state + \" \" + string(v: c) + \"/\" + string(v: n) + \" nodes\" }\n  })\n  |> group(columns: [\"link\"])",
+          "refId": "A"
+        }
+      ],
+      "title": "Corosync Link Timeline",
+      "type": "state-timeline"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${dsProxmox}"
+      },
+      "description": "Negotiated link speed of each physical NIC over time. Flat line = stable. Drop to 0 = link DOWN. Step down = speed renegotiated (e.g. 10G → 1G). Green dashed line = 10G target. [xxG] = max speed of the card. Min column: if it shows 0, the link went down in the selected time range. Shows every physical NIC (1G and faster).",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1428,7 +1999,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 13
+        "y": 19
       },
       "id": 20030,
       "interval": "1m",
@@ -1456,7 +2027,7 @@
             "type": "influxdb",
             "uid": "${dsProxmox}"
           },
-          "query": "import \"join\"\n\nphys = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"link_speed_max\")\n  |> keep(columns: [\"instance\"])\n  |> group()\n  |> distinct(column: \"instance\")\n  |> findColumn(fn: (key) => true, column: \"_value\")\n\nlink = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"network_up\" or r[\"_field\"] == \"link_speed\" or r[\"_field\"] == \"link_speed_max\")\n  |> filter(fn: (r) => contains(value: r.instance, set: phys))\n  |> group(columns: [\"instance\", \"_field\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> group(columns: [\"instance\"], mode: \"by\")\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> sort(columns: [\"_time\"])\n  |> fill(column: \"link_speed_max\", usePrevious: true)\n  |> filter(fn: (r) => exists r.link_speed_max and r.link_speed_max >= 10000.0)\n  |> map(fn: (r) => ({ _time: r._time, instance: r.instance, mx: r.link_speed_max,\n      lv: if exists r.network_up and r.network_up == 1.0\n          then (if exists r.link_speed and r.link_speed > 0.0 then r.link_speed else 1.0) else 0.0 }))\n  |> group()\n\nerr = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] =~ /^(rx_crc_errors|rx_length_errors|rx_missed_errors|rx_over_errors|rx_fifo_errors|rx_frame_errors|tx_carrier_errors|tx_aborted_errors|tx_fifo_errors|tx_heartbeat_errors|tx_window_errors|collisions)$/)\n  |> filter(fn: (r) => contains(value: r.instance, set: phys))\n  |> group(columns: [\"instance\", \"_field\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> difference(nonNegative: true)\n  |> group(columns: [\"instance\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: sum, createEmpty: false)\n  |> map(fn: (r) => ({ _time: r._time, instance: r.instance, ev: r._value }))\n  |> group()\n\nlink\n  |> map(fn: (r) => ({ _time: r._time, nic: r.instance + \" [\" + string(v: r.mx / 1000.0) + \"G]\", _value: r.lv }))\n  |> group(columns: [\"nic\"], mode: \"by\")\n  |> yield(name: \"speed\")",
+          "query": "import \"join\"\n\nphys = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"link_speed_max\")\n  |> keep(columns: [\"instance\"])\n  |> group()\n  |> distinct(column: \"instance\")\n  |> findColumn(fn: (key) => true, column: \"_value\")\n\nlink = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"network_up\" or r[\"_field\"] == \"link_speed\" or r[\"_field\"] == \"link_speed_max\")\n  |> filter(fn: (r) => contains(value: r.instance, set: phys))\n  |> group(columns: [\"instance\", \"_field\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> group(columns: [\"instance\"], mode: \"by\")\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> sort(columns: [\"_time\"])\n  |> fill(column: \"link_speed_max\", usePrevious: true)\n  |> filter(fn: (r) => exists r.link_speed_max and r.link_speed_max > 0.0)\n  |> map(fn: (r) => ({ _time: r._time, instance: r.instance, mx: r.link_speed_max,\n      lv: if exists r.network_up and r.network_up == 1.0\n          then (if exists r.link_speed and r.link_speed > 0.0 then r.link_speed else 1.0) else 0.0 }))\n  |> group()\n\nerr = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"nics\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] =~ /^(rx_crc_errors|rx_length_errors|rx_missed_errors|rx_over_errors|rx_fifo_errors|rx_frame_errors|tx_carrier_errors|tx_aborted_errors|tx_fifo_errors|tx_heartbeat_errors|tx_window_errors|collisions)$/)\n  |> filter(fn: (r) => contains(value: r.instance, set: phys))\n  |> group(columns: [\"instance\", \"_field\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> difference(nonNegative: true)\n  |> group(columns: [\"instance\"], mode: \"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: sum, createEmpty: false)\n  |> map(fn: (r) => ({ _time: r._time, instance: r.instance, ev: r._value }))\n  |> group()\n\nlink\n  |> map(fn: (r) => ({ _time: r._time, nic: r.instance + \" [\" + string(v: r.mx / 1000.0) + \"G]\", _value: r.lv }))\n  |> group(columns: [\"nic\"], mode: \"by\")\n  |> yield(name: \"speed\")",
           "refId": "A"
         }
       ],
@@ -1579,7 +2150,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 20
+        "y": 26
       },
       "id": 50,
       "options": {
@@ -1677,7 +2248,7 @@
         "h": 11,
         "w": 24,
         "x": 0,
-        "y": 28
+        "y": 34
       },
       "id": 9993,
       "options": {
@@ -2116,7 +2687,7 @@
         "h": 5,
         "w": 24,
         "x": 0,
-        "y": 39
+        "y": 45
       },
       "id": 9995,
       "options": {
@@ -2323,7 +2894,7 @@
         "h": 5,
         "w": 24,
         "x": 0,
-        "y": 44
+        "y": 50
       },
       "id": 20010,
       "options": {
@@ -2531,7 +3102,7 @@
         "h": 5,
         "w": 24,
         "x": 0,
-        "y": 49
+        "y": 55
       },
       "id": 20011,
       "options": {
@@ -2716,7 +3287,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 54
+        "y": 60
       },
       "id": 9996,
       "options": {
@@ -2828,7 +3399,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 62
+        "y": 68
       },
       "id": 9997,
       "options": {
@@ -3002,7 +3573,7 @@
         "h": 10,
         "w": 12,
         "x": 0,
-        "y": 70
+        "y": 76
       },
       "id": 9998,
       "options": {
@@ -3119,7 +3690,7 @@
         "h": 10,
         "w": 12,
         "x": 12,
-        "y": 70
+        "y": 76
       },
       "id": 9999,
       "interval": "1m",
@@ -3163,7 +3734,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 80
+        "y": 86
       },
       "id": 49,
       "panels": [],
@@ -3238,7 +3809,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 81
+        "y": 87
       },
       "id": 16,
       "options": {
@@ -3283,7 +3854,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 88
+        "y": 94
       },
       "id": 23,
       "panels": [],
@@ -3378,7 +3949,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 89
+        "y": 95
       },
       "id": 21,
       "options": {
@@ -3497,7 +4068,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 89
+        "y": 95
       },
       "id": 24,
       "options": {
@@ -3596,7 +4167,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 98
+        "y": 104
       },
       "id": 26,
       "options": {
@@ -3696,7 +4267,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 98
+        "y": 104
       },
       "id": 27,
       "options": {
@@ -3798,7 +4369,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 106
+        "y": 112
       },
       "id": 30,
       "options": {
@@ -3901,7 +4472,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 106
+        "y": 112
       },
       "id": 31,
       "options": {
@@ -4004,7 +4575,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 114
+        "y": 120
       },
       "id": 34,
       "options": {
@@ -4104,7 +4675,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 114
+        "y": 120
       },
       "id": 35,
       "options": {

@@ -61,6 +61,18 @@ Script chỉ chèn một đoạn vào `update_node_status` trong file `/usr/shar
 `pvestatd` chạy liên tục, nên `link_speed_max` chỉ đọc bằng `ethtool` một lần cho mỗi card. Nếu driver không báo link mode thì dùng tốc độ cao nhất từng thấy. Trường hợp card DOWN ngay từ lúc `pvestatd` khởi động mà driver lại không báo link mode, card đó sẽ chưa hiện trên panel 10G cho tới khi có link.
 - Các field cũ `hardware_drop`, `network_up`, `udp_loss`, `udp_total`, `corosync_conn` vẫn giữ nguyên tên.
 
+**Corosync (measurement `system`), đọc từ `corosync-cfgtool -s`:**
+
+| Field | Ý nghĩa |
+|---|---|
+| `corosync_links` | Số link Corosync đang cấu hình (link0, link1…) |
+| `corosync_links_up` | Số link tới được **mọi** node khác. Cluster 2 link khỏe = `2` |
+| `corosync_link<N>_peers` / `_connected` | Số node khác / số node kết nối được qua link N |
+| `corosync_link<N>_up` | `1` = link N tới được mọi node |
+| `corosync_link<N>_iface` | Card mà link N chạy qua (theo IP của link), ví dụ `vmbr0`, `nic2` |
+
+`corosync_conn` chỉ đếm socket UDP cổng 5404/5405, không cho biết link có thông. Dùng `corosync_links_up` để giám sát.
+
 ## 4. Setup từng bước
 
 Quy ước: dùng node đầu tiên `10.0.0.11` (pve1) làm nơi chạy script cho cả cluster. Các node trong cùng cluster đã SSH được sang nhau, nên thường không cần cấu hình SSH thêm. Thay IP và tên card cho đúng hệ thống.
@@ -175,7 +187,10 @@ Kết quả mẫu:
   [OK] InfluxDB.pm da duoc patch
   [OK] Co ethtool
   [OK] pvestatd dang chay
-  udp_loss=0 corosync_conn=4
+  udp_loss=0 corosync_conn=2
+  corosync: 2/2 link UP
+    link0  vmbr0        UP   2/2 node ket noi
+    link1  nic2         UP   2/2 node ket noi
   enp24s0f2np2     UP    10000/10000  rx_errors=67 rx_dropped=685 tx_dropped=878 rx_crc=67 (+17 counter ethtool)
 Hoan thanh: 1 node OK
 ```
@@ -211,7 +226,7 @@ scp root@10.0.0.11:/root/monitor-grafana-proxmox-cluster-influxdb/dashboard-graf
 
 Mở dashboard, chọn **Datasource** (datasource InfluxDB Flux trỏ tới bucket của cluster), **Server** = pve1, thời gian **Last 15 minutes**.
 
-- **Kết quả đúng:** panel "NIC Link Status (10G+)" hiện card 10G/25G; các bảng "NIC Link & Traffic / RX Errors / TX Errors (Since Boot)" khớp `ip -s link`.
+- **Kết quả đúng:** panel "NIC Link Status" hiện mọi card vật lý (kể cả card 1G), panel "Corosync Links" hiện `✔ UP 2/2` nếu cluster có 2 link; các bảng "NIC Link & Traffic / RX Errors / TX Errors (Since Boot)" khớp `ip -s link`.
 - **Nếu trống:** kiểm tra đã chọn đúng Datasource, đợi thêm 1 phút, chạy `./deploy-monitor-nic-proxmox.sh check <ip-pve1>`.
 
 ### Bước 7: Cài toàn cluster (pve1)
@@ -280,9 +295,11 @@ Import `dashboard-<bucket>.json` do lệnh `dashboard` tạo (Bước 6). Mọi 
 
 | Panel | Kiểu | Nội dung |
 |---|---|---|
-| NIC Link Status (10G+) | State timeline | Mỗi card vật lý 10G+ một thanh, tên kèm tốc độ tối đa (`[25G]`). Gộp trạng thái link và lỗi: `✔ UP 10G` (xanh) · `⚠ UP 10G · 1–99 Errors` (vàng) · `▲ UP 10G · 100–999 Errors` (cam) · `⛔ UP 10G · 1K+ Errors` / `⛔ DOWN` (đỏ) |
+| NIC Link Status | State timeline | Mỗi card vật lý một thanh (1G, 10G, 25G…), tên kèm tốc độ tối đa (`nic2 [1G]`). `✔ UP 10G` (xanh, đúng tốc độ tối đa của card) · `▲ UP 10G (below max)` (cam) · `⚠ … · 1–99 Errors` (vàng) · `▲ … · 100–999 Errors` (cam) · `⛔ … · 1K+ Errors` / `⛔ DOWN` (đỏ) |
 | NIC Link Speed | Time series | Tốc độ link theo thời gian, vạch nét đứt ở 10G. Tụt về 0 = DOWN, bước xuống = đổi tốc độ. Cột `Min` = 0 nghĩa là đã có lúc rớt link |
-| Corosync Connections, UDP Packet Loss | Stat | Sức khỏe mạng cluster |
+| Corosync Links | Stat | `✔ UP 2/2` / `▲ DEGRADED 1/2` / `⛔ DOWN`: số link Corosync tới được mọi node |
+| Corosync Link Timeline | State timeline | Mỗi link một thanh kèm card, ví dụ `link1 (nic2)`, trạng thái theo thời gian |
+| UDP Packet Loss | Stat | Gói UDP lỗi/rớt trên node |
 | Hardware RX Drops (Cumulative) | Time series | Gói RX bị rớt (tích lũy) theo từng interface |
 | NIC Link & Traffic (Since Boot) | Bảng | Link, Speed, Max Speed, RX/TX Bytes, RX/TX Packets, Multicast. Link/Speed tô màu theo trạng thái |
 | NIC RX Errors (Since Boot) | Bảng | Errors, CRC, Length, Missed, Dropped, Overrun, FIFO, Frame, No Handler |

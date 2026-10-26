@@ -28,7 +28,8 @@ Bộ công cụ này bổ sung các chỉ số mạng ở mức thấp vào ngay
 | Link chập chờn (flapping) | Panel NIC Link Status và NIC Link Speed theo thời gian |
 | Card 25G chỉ chạy 10G | So sánh `link_speed` với `link_speed_max` |
 | Ring buffer đầy, CPU xử lý không kịp | `rx_missed_errors`, `rx_fifo_errors` |
-| Corosync mất ổn định | `udp_loss`, `corosync_conn` |
+| Corosync mất một link (link0/link1) | `corosync_links_up` nhỏ hơn `corosync_links`, panel Corosync Links / Corosync Link Timeline |
+| Gói UDP Corosync bị mất | `udp_loss` |
 
 **Điểm mạnh:**
 
@@ -107,7 +108,15 @@ Card ảo (`tap*`, `veth*`, `fwbr*`, `fwpr*`, `fwln*`) chỉ lấy trạng thái
 |---|---|
 | `udp_loss` | Số gói UDP lỗi/rớt (`InErrors` trong `/proc/net/snmp`) |
 | `udp_total` | Tổng gói UDP đã nhận (`InDatagrams`) |
-| `corosync_conn` | Số kết nối Corosync đang hoạt động (cổng 5404/5405) |
+| `corosync_conn` | Số socket UDP Corosync đang mở (cổng 5404/5405). Chỉ để tham khảo, không cho biết link có thông |
+| `corosync_links` | Số link Corosync đang cấu hình (link0, link1…), đọc từ `corosync-cfgtool -s` |
+| `corosync_links_up` | Số link tới được **mọi** node khác. Cluster 2 link khỏe = `2` |
+| `corosync_link<N>_peers` | Số node khác trong cluster (theo link N) |
+| `corosync_link<N>_connected` | Số node kết nối được qua link N |
+| `corosync_link<N>_up` | `1` = link N tới được mọi node, `0` = mất ít nhất 1 node |
+| `corosync_link<N>_iface` | Card mạng mà link N chạy qua (theo IP của link), ví dụ `vmbr0`, `nic2` |
+
+Ví dụ cluster có 2 link: link0 chạy chung cặp card 10G (`vmbr0`), link1 chạy riêng card 1G `nic2`. Khi cả hai khỏe, `corosync_links_up = 2`. Mất `nic2` thì giá trị còn `1`, panel Corosync Links chuyển sang `▲ DEGRADED 1/2`, cluster vẫn chạy trên link0.
 
 ---
 
@@ -215,7 +224,10 @@ Kết quả mẫu khi cài thành công:
   [OK] Da patch InfluxDB.pm (backup: /usr/share/perl5/PVE/Status/InfluxDB.pm.bak)
   [OK] Co ethtool
   [OK] pvestatd dang chay
-  udp_loss=0 corosync_conn=4
+  udp_loss=0 corosync_conn=2
+  corosync: 2/2 link UP
+    link0  vmbr0        UP   2/2 node ket noi
+    link1  nic2         UP   2/2 node ket noi
   enp24s0f2np2     UP    10000/10000  rx_errors=67 rx_dropped=685 tx_dropped=878 rx_crc=67 (+17 counter ethtool)
 Hoan thanh: 1 node OK
 ```
@@ -281,9 +293,11 @@ Dashboard giữ các panel tổng quan của Proxmox (CPU, RAM, storage, VM) và
 
 | Panel | Kiểu | Nội dung |
 |---|---|---|
-| NIC Link Status (10G+) | State timeline | Mỗi card vật lý 10G+ một thanh, tên kèm tốc độ tối đa (`[25G]`). Gộp trạng thái link và lỗi: `✔ UP 10G` (xanh) · `⚠ UP 10G · 1–99 Errors` (vàng) · `▲ UP 10G · 100–999 Errors` (cam) · `⛔ UP 10G · 1K+ Errors` / `⛔ DOWN` (đỏ) |
+| NIC Link Status | State timeline | Mỗi card vật lý một thanh (1G, 10G, 25G…), tên kèm tốc độ tối đa (`nic2 [1G]`, `ens3f0np0 [25G]`). Gộp trạng thái link và lỗi: `✔ UP 10G` (xanh, đúng tốc độ tối đa của card) · `▲ UP 10G (below max)` (cam, chạy dưới tốc độ tối đa) · `⚠ … · 1–99 Errors` (vàng) · `▲ … · 100–999 Errors` (cam) · `⛔ … · 1K+ Errors` / `⛔ DOWN` (đỏ) |
 | NIC Link Speed | Time series | Tốc độ link theo thời gian, vạch nét đứt ở 10G. Tụt về 0 = DOWN, bước xuống = đổi tốc độ. Cột `Min` = 0 nghĩa là đã có lúc rớt link |
-| Corosync Connections, UDP Packet Loss | Stat | Sức khỏe mạng cluster |
+| Corosync Links | Stat | `✔ UP 2/2` (xanh) = mọi link Corosync tới được mọi node · `▲ DEGRADED 1/2` (cam) = một link mất node · `⛔ DOWN` (đỏ) |
+| Corosync Link Timeline | State timeline | Mỗi link một thanh kèm card, ví dụ `link0 (vmbr0)`, `link1 (nic2)`: `✔ UP 2/2 nodes` / `▲ DEGRADED 1/2 nodes` / `⛔ DOWN` theo thời gian |
+| UDP Packet Loss | Stat | Gói UDP lỗi/rớt trên node |
 | Hardware RX Drops (Cumulative) | Time series | Gói RX bị rớt (tích lũy) theo từng interface |
 | NIC Link & Traffic (Since Boot) | Bảng | Link, Speed, Max Speed, RX/TX Bytes, RX/TX Packets, Multicast. Link/Speed tô màu theo trạng thái |
 | NIC RX Errors (Since Boot) | Bảng | Errors, CRC, Length, Missed, Dropped, Overrun, FIFO, Frame, No Handler |
@@ -295,7 +309,7 @@ Dashboard giữ các panel tổng quan của Proxmox (CPU, RAM, storage, VM) và
 
 **Mức cảnh báo (bảng lỗi và counter):** 🟩 0 = OK · 🟨 1–99 = chú ý · 🟧 100–999 = cảnh báo · 🟥 1.000–9.999 = nghiêm trọng · đỏ đậm ≥ 10.000.
 
-**Màu tốc độ link:** xanh lá = UP từ 10G · cam = UP nhưng dưới 10G (kiểm tra cáp/SFP/port switch) · đỏ = DOWN. Card 25G chạy ở 10G hiện `UP 10G`, tên có `[25G]` để phân biệt.
+**Màu tốc độ link:** xanh lá = UP đúng tốc độ tối đa của chính card đó (card 1G chạy 1G cũng xanh) · cam `(below max)` = UP nhưng chậm hơn khả năng của card, ví dụ card 25G chạy 10G (kiểm tra cáp/SFP/port switch) · đỏ = DOWN.
 
 Mỗi panel có nút ⓘ giải thích bằng tiếng Anh ý nghĩa và nguyên nhân thường gặp của từng loại lỗi.
 
@@ -305,12 +319,13 @@ Mỗi panel có nút ⓘ giải thích bằng tiếng Anh ý nghĩa và nguyên 
 
 ## 9. Cảnh báo
 
-Nên tạo hai Alert rule trong Grafana. Truy vấn Flux đầy đủ có trong [tài liệu cảnh báo và xử lý sự cố](docs/02-Canh-Bao-Va-Xu-Ly-Su-Co-Card-Mang.md#1-cảnh-báo-grafana-alerting).
+Nên tạo ba Alert rule trong Grafana. Truy vấn Flux đầy đủ có trong [tài liệu cảnh báo và xử lý sự cố](docs/02-Canh-Bao-Va-Xu-Ly-Su-Co-Card-Mang.md#1-cảnh-báo-grafana-alerting).
 
 | Cảnh báo | Điều kiện |
 |---|---|
 | Card 10G mất link | `network_up` của card có `link_speed_max >= 10000` nhỏ hơn 1 trong 1 phút |
 | Lỗi CRC / RX errors đang tăng | Tổng lỗi mới trong 15 phút lớn hơn 0 (hoặc ngưỡng 10) |
+| Corosync mất link | `corosync_links_up` nhỏ hơn `corosync_links` trong 1 phút |
 
 ---
 

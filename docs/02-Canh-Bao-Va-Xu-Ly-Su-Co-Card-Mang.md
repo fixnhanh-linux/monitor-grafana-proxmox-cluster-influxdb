@@ -4,7 +4,7 @@ Tài liệu bổ sung cho [Hướng dẫn triển khai](01-Huong-Dan-Trien-Khai-
 
 ## 1. Cảnh báo (Grafana Alerting)
 
-Tạo trong **Alerting → Alert rules → New alert rule**, datasource InfluxDB (Flux). Nên có hai cảnh báo sau.
+Tạo trong **Alerting → Alert rules → New alert rule**, datasource InfluxDB (Flux). Nên có ba cảnh báo sau.
 
 ### a) Card 10G mất link
 
@@ -40,7 +40,28 @@ from(bucket: "proxmox-cluster-deco")
 
 Điều kiện: **Reduce** Last, **Threshold** IS ABOVE 0 (hoặc ngưỡng lớn hơn, ví dụ 10, để tránh báo vì lỗi lẻ tẻ). Nhãn `host`, `instance` có sẵn trong cảnh báo để biết node và card nào lỗi.
 
-> Hai truy vấn trên là mẫu. Hãy bấm **Preview** trong Alert rule để chạy thử trước khi bật gửi thông báo.
+### c) Corosync mất link
+
+Báo khi một link Corosync (ví dụ link1 chạy riêng trên card `nic2`) không còn tới được mọi node, dù cluster vẫn chạy trên link còn lại.
+
+```flux
+from(bucket: "proxmox-cluster-deco")
+  |> range(start: -5m)
+  |> filter(fn: (r) => r._measurement == "system")
+  |> filter(fn: (r) => r._field == "corosync_links" or r._field == "corosync_links_up")
+  |> last()
+  |> keep(columns: ["host", "_field", "_value"])
+  |> group(columns: ["host"])
+  |> pivot(rowKey: ["host"], columnKey: ["_field"], valueColumn: "_value")
+  |> map(fn: (r) => ({ host: r.host, _time: now(),
+                      _value: (if exists r.corosync_links then r.corosync_links else 0.0)
+                            - (if exists r.corosync_links_up then r.corosync_links_up else 0.0) }))
+  |> group(columns: ["host"])
+```
+
+Giá trị là **số link đang lỗi** trên node. Điều kiện: **Reduce** Last, **Threshold** IS ABOVE 0, **Pending period** 1m. Xem panel **Corosync Link Timeline** để biết link nào (và chạy qua card nào) bị mất.
+
+> Ba truy vấn trên là mẫu. Hãy bấm **Preview** trong Alert rule để chạy thử trước khi bật gửi thông báo.
 
 ## 2. Ý nghĩa các loại lỗi card mạng
 
@@ -54,6 +75,7 @@ from(bucket: "proxmox-cluster-deco")
 | `collisions` khác 0 | Link đang half-duplex | Kiểm tra duplex, ép full-duplex ở cả hai đầu |
 | Card 10G hiện `UP 1G` (màu cam) | SFP 1G, cáp không đạt chuẩn, port switch cấu hình 1G, auto-negotiation sai | Xem `ethtool <if>`, kiểm tra loại module và cấu hình port switch |
 | `udp_loss` tăng | Gói UDP bị mất ở node, ảnh hưởng Corosync | Kiểm tra mạng Corosync, tải CPU, `rx_missed_errors` của card chạy Corosync |
+| Corosync Links `▲ DEGRADED 1/2` | Một link Corosync mất kết nối tới ít nhất 1 node (card/cáp/switch của link đó, hoặc sai IP `ringX_addr`) | Xem Corosync Link Timeline để biết link và card nào; trên node chạy `corosync-cfgtool -s` và `ip -s link show <card>` |
 
 ### Quy trình xử lý khi thấy lỗi CRC
 
@@ -116,7 +138,7 @@ Mỗi card vật lý có khoảng 25 field kernel cộng 10–20 field ethtool, 
 
 | Tần suất | Việc cần làm |
 |---|---|
-| Hằng ngày | Xem panel "NIC Link Status (10G+)" và các biểu đồ "Per Interval" |
+| Hằng ngày | Xem panel "Corosync Links", "NIC Link Status" và các biểu đồ "Per Interval" |
 | Hằng tuần | Xem bảng counter tích lũy, đối chiếu card có lỗi tăng dần |
 | Sau mỗi lần nâng cấp Proxmox | `./deploy-monitor-nic-proxmox.sh check -f nodes.txt`, cài lại nếu mất patch |
 | Sau khi thay cáp/SFP | Theo dõi biểu đồ lỗi ít nhất 24 giờ để xác nhận đã hết |

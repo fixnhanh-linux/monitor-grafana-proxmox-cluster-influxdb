@@ -75,6 +75,73 @@ sub get_max_speed {
     return $MAX_SPEED{$iface} // 0;
 }
 
+# Phân tích output 'corosync-cfgtool -s', trả về { <link id> => { addr, peers, connected } }.
+# Hỗ trợ cả định dạng mới ("nodeid: 2: connected") và cũ ("nodeid 2: link enabled:1 link connected:1").
+sub parse_corosync_status {
+    my ($text) = @_;
+    my (%links, $id, $local);
+
+    foreach my $line (split(/\n/, $text // '')) {
+        if ($line =~ /^Local node ID (\d+)/) {
+            $local = $1;
+        } elsif ($line =~ /^LINK ID (\d+)/) {
+            $id = $1;
+            $links{$id} = { addr => '', peers => 0, connected => 0 };
+        } elsif (defined($id) && $line =~ /^\s*addr\s*=\s*(\S+)/) {
+            $links{$id}->{addr} = $1;
+        } elsif (defined($id) && $line =~ /nodeid:?\s+(\d+):\s*(.*)$/) {
+            my ($node, $st) = ($1, $2);
+            next if $st =~ /localhost/ || (defined($local) && $node == $local);
+            $links{$id}->{peers}++;
+            $links{$id}->{connected}++
+                if $st =~ /\bconnected\b/ && $st !~ /disconnected/ && $st !~ /connected:\s*0/;
+        }
+    }
+
+    return \%links;
+}
+
+# Tên card mạng đang giữ một địa chỉ IP (để biết link corosync chạy qua card nào)
+sub iface_of_addr {
+    my ($addr) = @_;
+    return '' if !$addr;
+    foreach my $line (split(/\n/, `ip -o addr show 2>/dev/null`)) {
+        return $1 if $line =~ /^\d+:\s+(\S+?)(?:\@\S+)?\s+inet6?\s+\Q$addr\E\//;
+    }
+    return '';
+}
+
+# Số liệu từng link corosync: số node kết nối được, link UP khi kết nối được tới mọi node
+sub get_corosync_links {
+    my $global = {};
+    return $global if !-x '/usr/sbin/corosync-cfgtool';
+
+    my $out = '';
+    if (open(my $fh, '-|', '/usr/bin/timeout', '2', '/usr/sbin/corosync-cfgtool', '-s')) {
+        local $/;
+        $out = <$fh> // '';
+        close($fh);
+    }
+    my $links = parse_corosync_status($out);
+    return $global if !%$links;
+
+    my $up = 0;
+    foreach my $id (sort { $a <=> $b } keys %$links) {
+        my $l = $links->{$id};
+        my $link_up = ($l->{peers} > 0 && $l->{connected} == $l->{peers}) ? 1 : 0;
+        $up += $link_up;
+        $global->{"corosync_link${id}_peers"} = $l->{peers};
+        $global->{"corosync_link${id}_connected"} = $l->{connected};
+        $global->{"corosync_link${id}_up"} = $link_up;
+        my $iface = iface_of_addr($l->{addr});
+        $global->{"corosync_link${id}_iface"} = $iface if $iface ne '';
+    }
+    $global->{corosync_links} = scalar(keys %$links);
+    $global->{corosync_links_up} = $up;
+
+    return $global;
+}
+
 # Hàm này sẽ được gọi từ PVE::Status::InfluxDB
 sub get_metrics {
 
@@ -92,6 +159,10 @@ sub get_metrics {
         $result->{global}->{udp_loss} = $udp_loss + 0;
         $result->{global}->{udp_total} = $udp_total + 0;
         $result->{global}->{corosync_conn} = $corosync + 0;
+
+        # Trạng thái từng link corosync (link0, link1...) từ corosync-cfgtool -s
+        my $cs = get_corosync_links();
+        $result->{global}->{$_} = $cs->{$_} foreach keys %$cs;
 
         # 2. Quét các card mạng
         foreach my $iface (glob("/sys/class/net/*")) {

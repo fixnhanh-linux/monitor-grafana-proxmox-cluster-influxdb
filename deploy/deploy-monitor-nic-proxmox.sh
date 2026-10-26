@@ -105,7 +105,18 @@ remote_check() {
         # Chay thu module, in so field lay duoc cho tung card vat ly
         perl -I/usr/share/perl5 -MPVE::CustomNetworkMetrics -e '
             my $m = PVE::CustomNetworkMetrics::get_metrics();
-            printf "  udp_loss=%s corosync_conn=%s\n", $m->{global}{udp_loss} // "-", $m->{global}{corosync_conn} // "-";
+            my $g = $m->{global};
+            printf "  udp_loss=%s corosync_conn=%s\n", $g->{udp_loss} // "-", $g->{corosync_conn} // "-";
+            if (defined $g->{corosync_links}) {
+                printf "  corosync: %d/%d link UP\n", $g->{corosync_links_up}, $g->{corosync_links};
+                foreach my $id (sort { $a <=> $b } map { /^corosync_link(\d+)_peers$/ ? $1 : () } keys %$g) {
+                    printf "    link%-2s %-12s %-4s %s/%s node ket noi\n", $id, $g->{"corosync_link${id}_iface"} // "?",
+                        $g->{"corosync_link${id}_up"} ? "UP" : "DOWN",
+                        $g->{"corosync_link${id}_connected"}, $g->{"corosync_link${id}_peers"};
+                }
+            } else {
+                print "  corosync: khong doc duoc corosync-cfgtool (node khong o trong cluster?)\n";
+            }
             foreach my $if (sort keys %{ $m->{nics} }) {
                 next unless -e "/sys/class/net/$if/device";
                 my $n = $m->{nics}{$if};

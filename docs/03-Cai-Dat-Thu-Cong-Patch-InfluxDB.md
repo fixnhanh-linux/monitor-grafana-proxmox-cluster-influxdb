@@ -21,7 +21,8 @@ Chúng ta sẽ bổ sung các chỉ số sau, được nhúng trực tiếp vào
 1. **System Metrics (Nhúng vào Measurement `system`):**
    - `udp_loss`: Số lượng gói tin UDP bị lỗi/rớt (InErrors).
    - `udp_total`: Tổng số gói tin UDP hệ thống đã nhận (InDatagrams).
-   - `corosync_conn`: Số lượng kết nối Corosync đang hoạt động (Rất quan trọng để giám sát sự ổn định của cụm Proxmox).
+   - `corosync_conn`: Số socket UDP Corosync đang mở (cổng 5404/5405), chỉ để tham khảo.
+   - `corosync_links`, `corosync_links_up`, `corosync_link<N>_{peers,connected,up,iface}`: trạng thái từng link Corosync (link0, link1…) đọc từ `corosync-cfgtool -s`. Có trong `deploy/CustomNetworkMetrics.pm`; nếu cài tay theo tài liệu này, hãy copy module từ thư mục `deploy/` thay cho đoạn code mẫu bên dưới để có đủ các field này.
    
 2. **Network Card Metrics (Nhúng vào Measurement `nics`):**
    - Quét tự động **toàn bộ** card mạng vật lý và ảo (`eno1`, `eno3f0`, `vmbr0`...).
