@@ -695,7 +695,7 @@
             "mode": "fixed",
             "fixedColor": "text"
           },
-          "displayName": "Corosync",
+          "displayName": "${__field.labels.name}",
           "mappings": [
             {
               "type": "regex",
@@ -728,7 +728,7 @@
               }
             }
           ],
-          "noValue": "Chưa có dữ liệu corosync (chạy lại install.sh)",
+          "noValue": "No corosync link data (re-run install.sh)",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -742,7 +742,7 @@
       },
       "gridPos": {
         "h": 6,
-        "w": 4,
+        "w": 7,
         "x": 0,
         "y": 7
       },
@@ -751,10 +751,10 @@
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "center",
-        "orientation": "auto",
+        "orientation": "horizontal",
         "percentChangeColorMode": "standard",
         "showPercentChange": false,
-        "textMode": "value",
+        "textMode": "value_and_name",
         "wideLayout": true,
         "reduceOptions": {
           "calcs": [
@@ -771,13 +771,13 @@
             "type": "influxdb",
             "uid": "${dsProxmox}"
           },
-          "query": "from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"system\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"corosync_links\" or r[\"_field\"] == \"corosync_links_up\")\n  |> last()\n  |> keep(columns: [\"host\", \"_field\", \"_value\"])\n  |> group()\n  |> pivot(rowKey: [\"host\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> map(fn: (r) => {\n      total = if exists r.corosync_links then int(v: r.corosync_links) else 0\n      up = if exists r.corosync_links_up then int(v: r.corosync_links_up) else 0\n      txt = string(v: up) + \"/\" + string(v: total) + \" link hoạt động\"\n      return { host: r.host, _value: if total > 0 and up == total then \"✔ \" + txt\n                                     else if up == 0 then \"⛔ \" + txt else \"▲ \" + txt }\n  })\n  |> group(columns: [\"host\"])",
+          "query": "import \"strings\"\n\nspeedLabel = (v) => if v >= 1000.0 then string(v: v / 1000.0) + \"G\" else string(v: int(v: v)) + \"M\"\n\nfrom(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"system\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] =~ /^corosync_link[0-9]+_(connected|peers|iface|addr|speed)$/)\n  |> last()\n  |> map(fn: (r) => ({ _value: string(v: r._value),\n      link: strings.split(v: r._field, t: \"_\")[1], metric: strings.split(v: r._field, t: \"_\")[2] }))\n  |> group(columns: [\"link\"])\n  |> pivot(rowKey: [\"link\"], columnKey: [\"metric\"], valueColumn: \"_value\")\n  |> map(fn: (r) => {\n      c = if exists r.connected then int(v: r.connected) else 0\n      n = if exists r.peers then int(v: r.peers) else 0\n      sp = if exists r.speed then float(v: r.speed) else 0.0\n      where = if exists r.iface then r.iface + (if sp > 0.0 then \" · \" + speedLabel(v: sp) else \"\")\n          else if exists r.addr then r.addr + \" · no local IP\" else \"no IP\"\n      state = if n > 0 and c == n then \"✔ UP\"\n          else if c > 0 then \"▲ DEGRADED \" + string(v: c) + \"/\" + string(v: n)\n          else \"⛔ DOWN\"\n      return { name: r.link + \" · \" + where, _value: state }\n  })\n  |> group(columns: [\"name\"])",
           "refId": "A"
         }
       ],
-      "title": "Corosync - link hoạt động",
+      "title": "Corosync Links",
       "type": "stat",
-      "description": "Số link Corosync (link0, link1...) đang kết nối được tới MỌI node khác, đọc từ \"corosync-cfgtool -s\".\n✔ xanh \"2/2 link hoạt động\" = cả hai link khỏe\n▲ cam \"1/2 link hoạt động\" = một link mất kết nối, cluster vẫn chạy nhờ link còn lại (mất dự phòng)\n⛔ đỏ \"0/2 link hoạt động\" = không link nào tới được node khác\nXem biểu đồ \"Sức khỏe link Corosync\" bên dưới để biết link nào lỗi, chạy qua card nào, tốc độ bao nhiêu."
+      "description": "Mỗi ô là một link Corosync (link0, link1...), đọc từ \"corosync-cfgtool -s\".\nTên ô: link · interface mang IP của link · tốc độ card vật lý, ví dụ \"link0 · vlan3001 · 10G\".\n✔ xanh \"UP\" = link kết nối được tới mọi node khác\n▲ cam \"DEGRADED 1/2\" = link chỉ tới được một phần node\n⛔ đỏ \"DOWN\" = link không tới được node nào\n\"<ip> · no local IP\" = link được khai báo trong corosync.conf nhưng node này chưa có interface mang IP đó (card chưa gán IP / chưa cắm / đang DOWN).\nCluster vẫn chạy khi còn ít nhất một link UP, nhưng mất dự phòng. Xem biểu đồ \"Corosync Link Health\" để biết link rớt lúc nào."
     },
     {
       "datasource": {
@@ -808,8 +808,8 @@
       },
       "gridPos": {
         "h": 6,
-        "w": 4,
-        "x": 4,
+        "w": 3,
+        "x": 7,
         "y": 7
       },
       "id": 9992,
@@ -841,7 +841,7 @@
           "refId": "A"
         }
       ],
-      "title": "Gói UDP lỗi/mất",
+      "title": "UDP Packet Loss",
       "type": "stat",
       "description": "Số gói UDP bị lỗi hoặc rớt trên node (InErrors trong /proc/net/snmp, cộng dồn từ lúc boot). Corosync chạy bằng UDP, nên số này tăng là dấu hiệu mạng cluster có vấn đề. 0 = bình thường."
     },
@@ -850,7 +850,7 @@
         "type": "influxdb",
         "uid": "${dsProxmox}"
       },
-      "description": "Mỗi card vật lý một thanh. [xxG] = tốc độ tối đa card hỗ trợ.\n✔ xanh \"Chạy 10G\" = link lên đúng tốc độ tối đa của card, không có lỗi\n▲ cam \"Chạy 100M (thấp hơn tối đa)\" = link lên nhưng chậm hơn khả năng của card: kiểm tra cáp, SFP, port switch\n⚠ vàng \"· 1–99 lỗi\" = có lỗi RX/TX mới trong khoảng thời gian đó\n▲ cam \"· 100–999 lỗi\"\n⛔ đỏ \"· 1K+ lỗi\" hoặc \"MẤT LINK\" = mất link hoặc lỗi nặng\nLỗi được tính: CRC, Length, Missed, Overrun, FIFO, Frame, Carrier, Aborted, Heartbeat, Window, Collisions.",
+      "description": "Mỗi card vật lý một thanh. [xxG] = tốc độ tối đa card hỗ trợ.\n✔ xanh \"UP 10G\" = link lên đúng tốc độ tối đa của card, không có lỗi\n▲ cam \"UP 10G (below max)\" = link lên nhưng chậm hơn khả năng của card (vd card 25G chạy 10G): kiểm tra cáp, SFP, port switch\n⚠ vàng \"· 1–99 Errors\" = có lỗi RX/TX mới trong khoảng thời gian đó\n▲ cam \"· 100–999 Errors\"\n⛔ đỏ \"· 1K+ Errors\" hoặc \"DOWN\" = mất link hoặc lỗi nặng\nLỗi được tính: CRC, Length, Missed, Overrun, FIFO, Frame, Carrier, Aborted, Heartbeat, Window, Collisions.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -878,7 +878,7 @@
                 "result": {
                   "color": "#C4162A",
                   "index": 0,
-                  "text": "⛔ MẤT LINK"
+                  "text": "⛔ DOWN"
                 },
                 "to": 0.5
               },
@@ -890,7 +890,7 @@
                 "result": {
                   "color": "#FF9830",
                   "index": 1,
-                  "text": "✔ Đang chạy"
+                  "text": "✔ UP"
                 },
                 "to": 1.5
               },
@@ -902,7 +902,7 @@
                 "result": {
                   "color": "#56A64B",
                   "index": 2,
-                  "text": "✔ Chạy 100M"
+                  "text": "✔ UP 100M"
                 },
                 "to": 100.05
               },
@@ -914,7 +914,7 @@
                 "result": {
                   "color": "#FF9830",
                   "index": 3,
-                  "text": "▲ Chạy 100M (thấp hơn tối đa)"
+                  "text": "▲ UP 100M (below max)"
                 },
                 "to": -99.95
               },
@@ -926,7 +926,7 @@
                 "result": {
                   "color": "#FADE2A",
                   "index": 4,
-                  "text": "⚠ Chạy 100M · 1–99 lỗi"
+                  "text": "⚠ UP 100M · 1–99 Errors"
                 },
                 "to": 100.15
               },
@@ -938,7 +938,7 @@
                 "result": {
                   "color": "#FADE2A",
                   "index": 5,
-                  "text": "⚠ Chạy 100M (thấp hơn tối đa) · 1–99 lỗi"
+                  "text": "⚠ UP 100M (below max) · 1–99 Errors"
                 },
                 "to": -100.05
               },
@@ -950,7 +950,7 @@
                 "result": {
                   "color": "#FF9830",
                   "index": 6,
-                  "text": "▲ Chạy 100M · 100–999 lỗi"
+                  "text": "▲ UP 100M · 100–999 Errors"
                 },
                 "to": 100.25
               },
@@ -962,7 +962,7 @@
                 "result": {
                   "color": "#FF9830",
                   "index": 7,
-                  "text": "▲ Chạy 100M (thấp hơn tối đa) · 100–999 lỗi"
+                  "text": "▲ UP 100M (below max) · 100–999 Errors"
                 },
                 "to": -100.15
               },
@@ -974,7 +974,7 @@
                 "result": {
                   "color": "#F2495C",
                   "index": 8,
-                  "text": "⛔ Chạy 100M · 1K+ lỗi"
+                  "text": "⛔ UP 100M · 1K+ Errors"
                 },
                 "to": 100.35
               },
@@ -986,7 +986,7 @@
                 "result": {
                   "color": "#F2495C",
                   "index": 9,
-                  "text": "⛔ Chạy 100M (thấp hơn tối đa) · 1K+ lỗi"
+                  "text": "⛔ UP 100M (below max) · 1K+ Errors"
                 },
                 "to": -100.25
               },
@@ -998,7 +998,7 @@
                 "result": {
                   "color": "#56A64B",
                   "index": 10,
-                  "text": "✔ Chạy 1G"
+                  "text": "✔ UP 1G"
                 },
                 "to": 1000.05
               },
@@ -1010,7 +1010,7 @@
                 "result": {
                   "color": "#FF9830",
                   "index": 11,
-                  "text": "▲ Chạy 1G (thấp hơn tối đa)"
+                  "text": "▲ UP 1G (below max)"
                 },
                 "to": -999.95
               },
@@ -1022,7 +1022,7 @@
                 "result": {
                   "color": "#FADE2A",
                   "index": 12,
-                  "text": "⚠ Chạy 1G · 1–99 lỗi"
+                  "text": "⚠ UP 1G · 1–99 Errors"
                 },
                 "to": 1000.15
               },
@@ -1034,7 +1034,7 @@
                 "result": {
                   "color": "#FADE2A",
                   "index": 13,
-                  "text": "⚠ Chạy 1G (thấp hơn tối đa) · 1–99 lỗi"
+                  "text": "⚠ UP 1G (below max) · 1–99 Errors"
                 },
                 "to": -1000.05
               },
@@ -1046,7 +1046,7 @@
                 "result": {
                   "color": "#FF9830",
                   "index": 14,
-                  "text": "▲ Chạy 1G · 100–999 lỗi"
+                  "text": "▲ UP 1G · 100–999 Errors"
                 },
                 "to": 1000.25
               },
@@ -1058,7 +1058,7 @@
                 "result": {
                   "color": "#FF9830",
                   "index": 15,
-                  "text": "▲ Chạy 1G (thấp hơn tối đa) · 100–999 lỗi"
+                  "text": "▲ UP 1G (below max) · 100–999 Errors"
                 },
                 "to": -1000.15
               },
@@ -1070,7 +1070,7 @@
                 "result": {
                   "color": "#F2495C",
                   "index": 16,
-                  "text": "⛔ Chạy 1G · 1K+ lỗi"
+                  "text": "⛔ UP 1G · 1K+ Errors"
                 },
                 "to": 1000.35
               },
@@ -1082,7 +1082,7 @@
                 "result": {
                   "color": "#F2495C",
                   "index": 17,
-                  "text": "⛔ Chạy 1G (thấp hơn tối đa) · 1K+ lỗi"
+                  "text": "⛔ UP 1G (below max) · 1K+ Errors"
                 },
                 "to": -1000.25
               },
@@ -1094,7 +1094,7 @@
                 "result": {
                   "color": "#56A64B",
                   "index": 18,
-                  "text": "✔ Chạy 2.5G"
+                  "text": "✔ UP 2.5G"
                 },
                 "to": 2500.05
               },
@@ -1106,7 +1106,7 @@
                 "result": {
                   "color": "#FF9830",
                   "index": 19,
-                  "text": "▲ Chạy 2.5G (thấp hơn tối đa)"
+                  "text": "▲ UP 2.5G (below max)"
                 },
                 "to": -2499.95
               },
@@ -1118,7 +1118,7 @@
                 "result": {
                   "color": "#FADE2A",
                   "index": 20,
-                  "text": "⚠ Chạy 2.5G · 1–99 lỗi"
+                  "text": "⚠ UP 2.5G · 1–99 Errors"
                 },
                 "to": 2500.15
               },
@@ -1130,7 +1130,7 @@
                 "result": {
                   "color": "#FADE2A",
                   "index": 21,
-                  "text": "⚠ Chạy 2.5G (thấp hơn tối đa) · 1–99 lỗi"
+                  "text": "⚠ UP 2.5G (below max) · 1–99 Errors"
                 },
                 "to": -2500.05
               },
@@ -1142,7 +1142,7 @@
                 "result": {
                   "color": "#FF9830",
                   "index": 22,
-                  "text": "▲ Chạy 2.5G · 100–999 lỗi"
+                  "text": "▲ UP 2.5G · 100–999 Errors"
                 },
                 "to": 2500.25
               },
@@ -1154,7 +1154,7 @@
                 "result": {
                   "color": "#FF9830",
                   "index": 23,
-                  "text": "▲ Chạy 2.5G (thấp hơn tối đa) · 100–999 lỗi"
+                  "text": "▲ UP 2.5G (below max) · 100–999 Errors"
                 },
                 "to": -2500.15
               },
@@ -1166,7 +1166,7 @@
                 "result": {
                   "color": "#F2495C",
                   "index": 24,
-                  "text": "⛔ Chạy 2.5G · 1K+ lỗi"
+                  "text": "⛔ UP 2.5G · 1K+ Errors"
                 },
                 "to": 2500.35
               },
@@ -1178,7 +1178,7 @@
                 "result": {
                   "color": "#F2495C",
                   "index": 25,
-                  "text": "⛔ Chạy 2.5G (thấp hơn tối đa) · 1K+ lỗi"
+                  "text": "⛔ UP 2.5G (below max) · 1K+ Errors"
                 },
                 "to": -2500.25
               },
@@ -1190,7 +1190,7 @@
                 "result": {
                   "color": "#56A64B",
                   "index": 26,
-                  "text": "✔ Chạy 5G"
+                  "text": "✔ UP 5G"
                 },
                 "to": 5000.05
               },
@@ -1202,7 +1202,7 @@
                 "result": {
                   "color": "#FF9830",
                   "index": 27,
-                  "text": "▲ Chạy 5G (thấp hơn tối đa)"
+                  "text": "▲ UP 5G (below max)"
                 },
                 "to": -4999.95
               },
@@ -1214,7 +1214,7 @@
                 "result": {
                   "color": "#FADE2A",
                   "index": 28,
-                  "text": "⚠ Chạy 5G · 1–99 lỗi"
+                  "text": "⚠ UP 5G · 1–99 Errors"
                 },
                 "to": 5000.15
               },
@@ -1226,7 +1226,7 @@
                 "result": {
                   "color": "#FADE2A",
                   "index": 29,
-                  "text": "⚠ Chạy 5G (thấp hơn tối đa) · 1–99 lỗi"
+                  "text": "⚠ UP 5G (below max) · 1–99 Errors"
                 },
                 "to": -5000.05
               },
@@ -1238,7 +1238,7 @@
                 "result": {
                   "color": "#FF9830",
                   "index": 30,
-                  "text": "▲ Chạy 5G · 100–999 lỗi"
+                  "text": "▲ UP 5G · 100–999 Errors"
                 },
                 "to": 5000.25
               },
@@ -1250,7 +1250,7 @@
                 "result": {
                   "color": "#FF9830",
                   "index": 31,
-                  "text": "▲ Chạy 5G (thấp hơn tối đa) · 100–999 lỗi"
+                  "text": "▲ UP 5G (below max) · 100–999 Errors"
                 },
                 "to": -5000.15
               },
@@ -1262,7 +1262,7 @@
                 "result": {
                   "color": "#F2495C",
                   "index": 32,
-                  "text": "⛔ Chạy 5G · 1K+ lỗi"
+                  "text": "⛔ UP 5G · 1K+ Errors"
                 },
                 "to": 5000.35
               },
@@ -1274,7 +1274,7 @@
                 "result": {
                   "color": "#F2495C",
                   "index": 33,
-                  "text": "⛔ Chạy 5G (thấp hơn tối đa) · 1K+ lỗi"
+                  "text": "⛔ UP 5G (below max) · 1K+ Errors"
                 },
                 "to": -5000.25
               },
@@ -1286,7 +1286,7 @@
                 "result": {
                   "color": "#56A64B",
                   "index": 34,
-                  "text": "✔ Chạy 10G"
+                  "text": "✔ UP 10G"
                 },
                 "to": 10000.05
               },
@@ -1298,7 +1298,7 @@
                 "result": {
                   "color": "#FF9830",
                   "index": 35,
-                  "text": "▲ Chạy 10G (thấp hơn tối đa)"
+                  "text": "▲ UP 10G (below max)"
                 },
                 "to": -9999.95
               },
@@ -1310,7 +1310,7 @@
                 "result": {
                   "color": "#FADE2A",
                   "index": 36,
-                  "text": "⚠ Chạy 10G · 1–99 lỗi"
+                  "text": "⚠ UP 10G · 1–99 Errors"
                 },
                 "to": 10000.15
               },
@@ -1322,7 +1322,7 @@
                 "result": {
                   "color": "#FADE2A",
                   "index": 37,
-                  "text": "⚠ Chạy 10G (thấp hơn tối đa) · 1–99 lỗi"
+                  "text": "⚠ UP 10G (below max) · 1–99 Errors"
                 },
                 "to": -10000.05
               },
@@ -1334,7 +1334,7 @@
                 "result": {
                   "color": "#FF9830",
                   "index": 38,
-                  "text": "▲ Chạy 10G · 100–999 lỗi"
+                  "text": "▲ UP 10G · 100–999 Errors"
                 },
                 "to": 10000.25
               },
@@ -1346,7 +1346,7 @@
                 "result": {
                   "color": "#FF9830",
                   "index": 39,
-                  "text": "▲ Chạy 10G (thấp hơn tối đa) · 100–999 lỗi"
+                  "text": "▲ UP 10G (below max) · 100–999 Errors"
                 },
                 "to": -10000.15
               },
@@ -1358,7 +1358,7 @@
                 "result": {
                   "color": "#F2495C",
                   "index": 40,
-                  "text": "⛔ Chạy 10G · 1K+ lỗi"
+                  "text": "⛔ UP 10G · 1K+ Errors"
                 },
                 "to": 10000.35
               },
@@ -1370,7 +1370,7 @@
                 "result": {
                   "color": "#F2495C",
                   "index": 41,
-                  "text": "⛔ Chạy 10G (thấp hơn tối đa) · 1K+ lỗi"
+                  "text": "⛔ UP 10G (below max) · 1K+ Errors"
                 },
                 "to": -10000.25
               },
@@ -1382,7 +1382,7 @@
                 "result": {
                   "color": "#56A64B",
                   "index": 42,
-                  "text": "✔ Chạy 25G"
+                  "text": "✔ UP 25G"
                 },
                 "to": 25000.05
               },
@@ -1394,7 +1394,7 @@
                 "result": {
                   "color": "#FF9830",
                   "index": 43,
-                  "text": "▲ Chạy 25G (thấp hơn tối đa)"
+                  "text": "▲ UP 25G (below max)"
                 },
                 "to": -24999.95
               },
@@ -1406,7 +1406,7 @@
                 "result": {
                   "color": "#FADE2A",
                   "index": 44,
-                  "text": "⚠ Chạy 25G · 1–99 lỗi"
+                  "text": "⚠ UP 25G · 1–99 Errors"
                 },
                 "to": 25000.15
               },
@@ -1418,7 +1418,7 @@
                 "result": {
                   "color": "#FADE2A",
                   "index": 45,
-                  "text": "⚠ Chạy 25G (thấp hơn tối đa) · 1–99 lỗi"
+                  "text": "⚠ UP 25G (below max) · 1–99 Errors"
                 },
                 "to": -25000.05
               },
@@ -1430,7 +1430,7 @@
                 "result": {
                   "color": "#FF9830",
                   "index": 46,
-                  "text": "▲ Chạy 25G · 100–999 lỗi"
+                  "text": "▲ UP 25G · 100–999 Errors"
                 },
                 "to": 25000.25
               },
@@ -1442,7 +1442,7 @@
                 "result": {
                   "color": "#FF9830",
                   "index": 47,
-                  "text": "▲ Chạy 25G (thấp hơn tối đa) · 100–999 lỗi"
+                  "text": "▲ UP 25G (below max) · 100–999 Errors"
                 },
                 "to": -25000.15
               },
@@ -1454,7 +1454,7 @@
                 "result": {
                   "color": "#F2495C",
                   "index": 48,
-                  "text": "⛔ Chạy 25G · 1K+ lỗi"
+                  "text": "⛔ UP 25G · 1K+ Errors"
                 },
                 "to": 25000.35
               },
@@ -1466,7 +1466,7 @@
                 "result": {
                   "color": "#F2495C",
                   "index": 49,
-                  "text": "⛔ Chạy 25G (thấp hơn tối đa) · 1K+ lỗi"
+                  "text": "⛔ UP 25G (below max) · 1K+ Errors"
                 },
                 "to": -25000.25
               },
@@ -1478,7 +1478,7 @@
                 "result": {
                   "color": "#56A64B",
                   "index": 50,
-                  "text": "✔ Chạy 40G"
+                  "text": "✔ UP 40G"
                 },
                 "to": 40000.05
               },
@@ -1490,7 +1490,7 @@
                 "result": {
                   "color": "#FF9830",
                   "index": 51,
-                  "text": "▲ Chạy 40G (thấp hơn tối đa)"
+                  "text": "▲ UP 40G (below max)"
                 },
                 "to": -39999.95
               },
@@ -1502,7 +1502,7 @@
                 "result": {
                   "color": "#FADE2A",
                   "index": 52,
-                  "text": "⚠ Chạy 40G · 1–99 lỗi"
+                  "text": "⚠ UP 40G · 1–99 Errors"
                 },
                 "to": 40000.15
               },
@@ -1514,7 +1514,7 @@
                 "result": {
                   "color": "#FADE2A",
                   "index": 53,
-                  "text": "⚠ Chạy 40G (thấp hơn tối đa) · 1–99 lỗi"
+                  "text": "⚠ UP 40G (below max) · 1–99 Errors"
                 },
                 "to": -40000.05
               },
@@ -1526,7 +1526,7 @@
                 "result": {
                   "color": "#FF9830",
                   "index": 54,
-                  "text": "▲ Chạy 40G · 100–999 lỗi"
+                  "text": "▲ UP 40G · 100–999 Errors"
                 },
                 "to": 40000.25
               },
@@ -1538,7 +1538,7 @@
                 "result": {
                   "color": "#FF9830",
                   "index": 55,
-                  "text": "▲ Chạy 40G (thấp hơn tối đa) · 100–999 lỗi"
+                  "text": "▲ UP 40G (below max) · 100–999 Errors"
                 },
                 "to": -40000.15
               },
@@ -1550,7 +1550,7 @@
                 "result": {
                   "color": "#F2495C",
                   "index": 56,
-                  "text": "⛔ Chạy 40G · 1K+ lỗi"
+                  "text": "⛔ UP 40G · 1K+ Errors"
                 },
                 "to": 40000.35
               },
@@ -1562,7 +1562,7 @@
                 "result": {
                   "color": "#F2495C",
                   "index": 57,
-                  "text": "⛔ Chạy 40G (thấp hơn tối đa) · 1K+ lỗi"
+                  "text": "⛔ UP 40G (below max) · 1K+ Errors"
                 },
                 "to": -40000.25
               },
@@ -1574,7 +1574,7 @@
                 "result": {
                   "color": "#56A64B",
                   "index": 58,
-                  "text": "✔ Chạy 50G"
+                  "text": "✔ UP 50G"
                 },
                 "to": 50000.05
               },
@@ -1586,7 +1586,7 @@
                 "result": {
                   "color": "#FF9830",
                   "index": 59,
-                  "text": "▲ Chạy 50G (thấp hơn tối đa)"
+                  "text": "▲ UP 50G (below max)"
                 },
                 "to": -49999.95
               },
@@ -1598,7 +1598,7 @@
                 "result": {
                   "color": "#FADE2A",
                   "index": 60,
-                  "text": "⚠ Chạy 50G · 1–99 lỗi"
+                  "text": "⚠ UP 50G · 1–99 Errors"
                 },
                 "to": 50000.15
               },
@@ -1610,7 +1610,7 @@
                 "result": {
                   "color": "#FADE2A",
                   "index": 61,
-                  "text": "⚠ Chạy 50G (thấp hơn tối đa) · 1–99 lỗi"
+                  "text": "⚠ UP 50G (below max) · 1–99 Errors"
                 },
                 "to": -50000.05
               },
@@ -1622,7 +1622,7 @@
                 "result": {
                   "color": "#FF9830",
                   "index": 62,
-                  "text": "▲ Chạy 50G · 100–999 lỗi"
+                  "text": "▲ UP 50G · 100–999 Errors"
                 },
                 "to": 50000.25
               },
@@ -1634,7 +1634,7 @@
                 "result": {
                   "color": "#FF9830",
                   "index": 63,
-                  "text": "▲ Chạy 50G (thấp hơn tối đa) · 100–999 lỗi"
+                  "text": "▲ UP 50G (below max) · 100–999 Errors"
                 },
                 "to": -50000.15
               },
@@ -1646,7 +1646,7 @@
                 "result": {
                   "color": "#F2495C",
                   "index": 64,
-                  "text": "⛔ Chạy 50G · 1K+ lỗi"
+                  "text": "⛔ UP 50G · 1K+ Errors"
                 },
                 "to": 50000.35
               },
@@ -1658,7 +1658,7 @@
                 "result": {
                   "color": "#F2495C",
                   "index": 65,
-                  "text": "⛔ Chạy 50G (thấp hơn tối đa) · 1K+ lỗi"
+                  "text": "⛔ UP 50G (below max) · 1K+ Errors"
                 },
                 "to": -50000.25
               },
@@ -1670,7 +1670,7 @@
                 "result": {
                   "color": "#56A64B",
                   "index": 66,
-                  "text": "✔ Chạy 100G"
+                  "text": "✔ UP 100G"
                 },
                 "to": 100000.05
               },
@@ -1682,7 +1682,7 @@
                 "result": {
                   "color": "#FF9830",
                   "index": 67,
-                  "text": "▲ Chạy 100G (thấp hơn tối đa)"
+                  "text": "▲ UP 100G (below max)"
                 },
                 "to": -99999.95
               },
@@ -1694,7 +1694,7 @@
                 "result": {
                   "color": "#FADE2A",
                   "index": 68,
-                  "text": "⚠ Chạy 100G · 1–99 lỗi"
+                  "text": "⚠ UP 100G · 1–99 Errors"
                 },
                 "to": 100000.15
               },
@@ -1706,7 +1706,7 @@
                 "result": {
                   "color": "#FADE2A",
                   "index": 69,
-                  "text": "⚠ Chạy 100G (thấp hơn tối đa) · 1–99 lỗi"
+                  "text": "⚠ UP 100G (below max) · 1–99 Errors"
                 },
                 "to": -100000.05
               },
@@ -1718,7 +1718,7 @@
                 "result": {
                   "color": "#FF9830",
                   "index": 70,
-                  "text": "▲ Chạy 100G · 100–999 lỗi"
+                  "text": "▲ UP 100G · 100–999 Errors"
                 },
                 "to": 100000.25
               },
@@ -1730,7 +1730,7 @@
                 "result": {
                   "color": "#FF9830",
                   "index": 71,
-                  "text": "▲ Chạy 100G (thấp hơn tối đa) · 100–999 lỗi"
+                  "text": "▲ UP 100G (below max) · 100–999 Errors"
                 },
                 "to": -100000.15
               },
@@ -1742,7 +1742,7 @@
                 "result": {
                   "color": "#F2495C",
                   "index": 72,
-                  "text": "⛔ Chạy 100G · 1K+ lỗi"
+                  "text": "⛔ UP 100G · 1K+ Errors"
                 },
                 "to": 100000.35
               },
@@ -1754,7 +1754,7 @@
                 "result": {
                   "color": "#F2495C",
                   "index": 73,
-                  "text": "⛔ Chạy 100G (thấp hơn tối đa) · 1K+ lỗi"
+                  "text": "⛔ UP 100G (below max) · 1K+ Errors"
                 },
                 "to": -100000.25
               },
@@ -1784,8 +1784,8 @@
       },
       "gridPos": {
         "h": 6,
-        "w": 16,
-        "x": 8,
+        "w": 14,
+        "x": 10,
         "y": 7
       },
       "id": 10001,
@@ -1817,7 +1817,7 @@
           "refId": "A"
         }
       ],
-      "title": "Trạng thái card mạng (NIC)",
+      "title": "NIC Link Status",
       "type": "state-timeline"
     },
     {
@@ -1825,7 +1825,7 @@
         "type": "influxdb",
         "uid": "${dsProxmox}"
       },
-      "description": "Mỗi link Corosync một đường = % số node khác kết nối được qua link đó (đọc từ \"corosync-cfgtool -s\").\nTên đường: link · interface → card vật lý · tốc độ, ví dụ \"link0 · vlan3001 → nic0+nic1 · 10G\".\nNền xanh 100% = link thông tới mọi node · nền cam = mất một phần node · nền đỏ 0% = link mất.\nBảng bên phải: Last = hiện tại, Min = 0% nghĩa là link đã từng rớt trong khoảng thời gian đang xem.\n\"<ip> · node không có IP này\" = link được khai báo trong corosync.conf nhưng node này chưa có interface mang IP đó (card chưa cấu hình IP / chưa cắm / đang DOWN).",
+      "description": "Mỗi link Corosync một đường = % số node khác kết nối được qua link đó (đọc từ \"corosync-cfgtool -s\").\nTên đường: link · interface → card vật lý · tốc độ, ví dụ \"link0 · vlan3001 → nic0+nic1 · 10G\".\nNền xanh 100% = link thông tới mọi node · nền cam = mất một phần node · nền đỏ 0% = link mất.\nBảng bên phải: Last = hiện tại, Min = 0% nghĩa là link đã từng rớt trong khoảng thời gian đang xem.\n\"<ip> · no local IP\" = link được khai báo trong corosync.conf nhưng node này chưa có interface mang IP đó (card chưa gán IP / chưa cắm / đang DOWN).",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1835,7 +1835,7 @@
             "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
-            "axisLabel": "% node kết nối được",
+            "axisLabel": "% nodes reachable",
             "axisPlacement": "auto",
             "barAlignment": 0,
             "barWidthFactor": 0.6,
@@ -1922,11 +1922,11 @@
             "type": "influxdb",
             "uid": "${dsProxmox}"
           },
-          "query": "import \"strings\"\n\nspeedLabel = (v) => if v >= 1000.0 then string(v: v / 1000.0) + \"G\" else string(v: int(v: v)) + \"M\"\n\nraw = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"system\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] =~ /^corosync_link[0-9]+_(connected|peers|iface|addr|nics|speed)$/)\n\n// Ten moi link lay theo gia tri MOI NHAT, de 1 link chi co 1 duong\nnames = raw\n  |> last()\n  |> map(fn: (r) => ({ _value: string(v: r._value),\n      link: strings.split(v: r._field, t: \"_\")[1], metric: strings.split(v: r._field, t: \"_\")[2] }))\n  |> group(columns: [\"link\"])\n  |> pivot(rowKey: [\"link\"], columnKey: [\"metric\"], valueColumn: \"_value\")\n  |> map(fn: (r) => {\n      sp = if exists r.speed then float(v: r.speed) else 0.0\n      where = if exists r.iface\n          then r.iface + (if exists r.nics then \" → \" + r.nics else \"\") + (if sp > 0.0 then \" · \" + speedLabel(v: sp) else \"\")\n          else if exists r.addr then r.addr + \" · node không có IP này\"\n          else \"chưa có IP\"\n      return { link: r.link, name: r.link + \" · \" + where }\n  })\n  |> group(columns: [\"link\"])\n\n// % so node khac ket noi duoc qua tung link\ndata = raw\n  |> filter(fn: (r) => r[\"_field\"] =~ /_(connected|peers)$/)\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> map(fn: (r) => ({ _time: r._time, _value: float(v: r._value),\n      link: strings.split(v: r._field, t: \"_\")[1], metric: strings.split(v: r._field, t: \"_\")[2] }))\n  |> group(columns: [\"link\"])\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"metric\"], valueColumn: \"_value\")\n  |> map(fn: (r) => ({ _time: r._time, link: r.link,\n      _value: if exists r.peers and r.peers > 0.0\n              then (if exists r.connected then r.connected else 0.0) / r.peers * 100.0 else 0.0 }))\n  |> group(columns: [\"link\"])\n\njoin(tables: {d: data, n: names}, on: [\"link\"])\n  |> map(fn: (r) => ({ _time: r._time, name: r.name, _value: r._value }))\n  |> group(columns: [\"name\"])\n  |> sort(columns: [\"_time\"])",
+          "query": "import \"strings\"\n\nspeedLabel = (v) => if v >= 1000.0 then string(v: v / 1000.0) + \"G\" else string(v: int(v: v)) + \"M\"\n\nraw = from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"system\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] =~ /^corosync_link[0-9]+_(connected|peers|iface|addr|nics|speed)$/)\n\n// Ten moi link lay theo gia tri MOI NHAT, de 1 link chi co 1 duong\nnames = raw\n  |> last()\n  |> map(fn: (r) => ({ _value: string(v: r._value),\n      link: strings.split(v: r._field, t: \"_\")[1], metric: strings.split(v: r._field, t: \"_\")[2] }))\n  |> group(columns: [\"link\"])\n  |> pivot(rowKey: [\"link\"], columnKey: [\"metric\"], valueColumn: \"_value\")\n  |> map(fn: (r) => {\n      sp = if exists r.speed then float(v: r.speed) else 0.0\n      where = if exists r.iface\n          then r.iface + (if exists r.nics then \" → \" + r.nics else \"\") + (if sp > 0.0 then \" · \" + speedLabel(v: sp) else \"\")\n          else if exists r.addr then r.addr + \" · no local IP\"\n          else \"no IP\"\n      return { link: r.link, name: r.link + \" · \" + where }\n  })\n  |> group(columns: [\"link\"])\n\n// % so node khac ket noi duoc qua tung link\ndata = raw\n  |> filter(fn: (r) => r[\"_field\"] =~ /_(connected|peers)$/)\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> map(fn: (r) => ({ _time: r._time, _value: float(v: r._value),\n      link: strings.split(v: r._field, t: \"_\")[1], metric: strings.split(v: r._field, t: \"_\")[2] }))\n  |> group(columns: [\"link\"])\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"metric\"], valueColumn: \"_value\")\n  |> map(fn: (r) => ({ _time: r._time, link: r.link,\n      _value: if exists r.peers and r.peers > 0.0\n              then (if exists r.connected then r.connected else 0.0) / r.peers * 100.0 else 0.0 }))\n  |> group(columns: [\"link\"])\n\njoin(tables: {d: data, n: names}, on: [\"link\"])\n  |> map(fn: (r) => ({ _time: r._time, name: r.name, _value: r._value }))\n  |> group(columns: [\"name\"])\n  |> sort(columns: [\"_time\"])",
           "refId": "A"
         }
       ],
-      "title": "Sức khỏe link Corosync",
+      "title": "Corosync Link Health",
       "type": "timeseries"
     },
     {
@@ -2032,7 +2032,7 @@
           "refId": "A"
         }
       ],
-      "title": "Tốc độ card mạng theo thời gian",
+      "title": "NIC Link Speed",
       "type": "timeseries"
     },
     {

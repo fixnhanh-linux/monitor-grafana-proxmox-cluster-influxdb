@@ -59,7 +59,7 @@ from(bucket: "proxmox-cluster-deco")
   |> group(columns: ["host"])
 ```
 
-Giá trị là **số link đang lỗi** trên node. Điều kiện: **Reduce** Last, **Threshold** IS ABOVE 0, **Pending period** 1m. Xem panel **Sức khỏe link Corosync** để biết link nào (và chạy qua card nào) bị mất.
+Giá trị là **số link đang lỗi** trên node. Điều kiện: **Reduce** Last, **Threshold** IS ABOVE 0, **Pending period** 1m. Xem panel **Corosync Link Health** để biết link nào (và chạy qua card nào) bị mất.
 
 > Ba truy vấn trên là mẫu. Hãy bấm **Preview** trong Alert rule để chạy thử trước khi bật gửi thông báo.
 
@@ -70,12 +70,12 @@ Giá trị là **số link đang lỗi** trên node. Điều kiện: **Reduce** 
 | `rx_crc_errors`, `rx_length_errors`, `port.rx_crc_errors` tăng | Lỗi lớp vật lý: cáp/DAC hỏng, SFP bẩn hoặc lỗi, port switch lỗi, không khớp tốc độ/FEC | Vệ sinh hoặc thay SFP, thay cáp/DAC, đổi port switch, xem counter lỗi phía switch |
 | `rx_dropped` tăng nhưng không có errors | Kernel bỏ gói ở tầng phần mềm: VLAN chưa cấu hình, protocol không xử lý (LLDP…), gói không có đích | Thường không nghiêm trọng. Nếu tăng nhanh thì xem thêm `rx_missed_errors` / `rx_fifo_errors` |
 | `rx_missed_errors`, `rx_fifo_errors`, `rx_over_errors` tăng | Ring buffer đầy, CPU xử lý ngắt không kịp | Xem `ethtool -g <if>`, tăng ring: `ethtool -G <if> rx 4096`. Kiểm tra CPU/IRQ |
-| `tx_dropped`, `port.tx_dropped_link_down` tăng | Link chập chờn (flapping), hàng đợi gửi đầy | Xem panel "Trạng thái card mạng (NIC)" / "Tốc độ card mạng theo thời gian" và log switch, kiểm tra cáp/SFP |
+| `tx_dropped`, `port.tx_dropped_link_down` tăng | Link chập chờn (flapping), hàng đợi gửi đầy | Xem panel "NIC Link Status" / "NIC Link Speed" và log switch, kiểm tra cáp/SFP |
 | `tx_carrier_errors` tăng | Mất tín hiệu khi đang gửi | Kiểm tra cáp, SFP, port switch |
 | `collisions` khác 0 | Link đang half-duplex | Kiểm tra duplex, ép full-duplex ở cả hai đầu |
 | Card 10G hiện `UP 1G` (màu cam) | SFP 1G, cáp không đạt chuẩn, port switch cấu hình 1G, auto-negotiation sai | Xem `ethtool <if>`, kiểm tra loại module và cấu hình port switch |
 | `udp_loss` tăng | Gói UDP bị mất ở node, ảnh hưởng Corosync | Kiểm tra mạng Corosync, tải CPU, `rx_missed_errors` của card chạy Corosync |
-| "Corosync - link hoạt động" `▲ 1/2 link hoạt động` | Một link Corosync mất kết nối tới ít nhất 1 node (card/cáp/switch của link đó, hoặc sai IP `ringX_addr`) | Xem Corosync Link Health để biết link và card nào; trên node chạy `corosync-cfgtool -s` và `ip -s link show <card>` |
+| Một ô trong "Corosync Links" `⛔ DOWN` / `▲ DEGRADED` | Một link Corosync mất kết nối tới ít nhất 1 node (card/cáp/switch của link đó, hoặc sai IP `ringX_addr`) | Xem Corosync Link Health để biết link và card nào; trên node chạy `corosync-cfgtool -s` và `ip -s link show <card>` |
 
 ### Quy trình xử lý khi thấy lỗi CRC
 
@@ -138,7 +138,7 @@ Mỗi card vật lý có khoảng 25 field kernel cộng 10–20 field ethtool, 
 
 | Tần suất | Việc cần làm |
 |---|---|
-| Hằng ngày | Xem panel "Corosync - link hoạt động", "Trạng thái card mạng (NIC)" và các biểu đồ "Per Interval" |
+| Hằng ngày | Xem panel "Corosync Links", "NIC Link Status" và các biểu đồ "Per Interval" |
 | Hằng tuần | Xem bảng counter tích lũy, đối chiếu card có lỗi tăng dần |
 | Sau mỗi lần nâng cấp Proxmox | `./deploy-monitor-nic-proxmox.sh check -f nodes.txt`, cài lại nếu mất patch |
 | Sau khi thay cáp/SFP | Theo dõi biểu đồ lỗi ít nhất 24 giờ để xác nhận đã hết |

@@ -229,7 +229,7 @@ scp root@10.0.0.11:/root/monitor-grafana-proxmox-cluster-influxdb/dashboard-graf
 
 Mở dashboard, chọn **Datasource** (datasource InfluxDB Flux trỏ tới bucket của cluster), **Server** = pve1, thời gian **Last 15 minutes**.
 
-- **Kết quả đúng:** panel "Trạng thái card mạng (NIC)" hiện mọi card vật lý (kể cả card 1G), panel "Corosync - link hoạt động" hiện `✔ 2/2 link hoạt động` nếu cluster có 2 link; các bảng "NIC Link & Traffic / RX Errors / TX Errors (Since Boot)" khớp `ip -s link`.
+- **Kết quả đúng:** panel "NIC Link Status" hiện mọi card vật lý (kể cả card 1G), panel "Corosync Links" có một ô `✔ UP` cho mỗi link; các bảng "NIC Link & Traffic / RX Errors / TX Errors (Since Boot)" khớp `ip -s link`.
 - **Nếu trống:** kiểm tra đã chọn đúng Datasource, đợi thêm 1 phút, chạy `./deploy-monitor-nic-proxmox.sh check <ip-pve1>`.
 
 ### Bước 7: Cài toàn cluster (pve1)
@@ -298,11 +298,11 @@ Import `dashboard-<bucket>.json` do lệnh `dashboard` tạo (Bước 6). Mọi 
 
 | Panel | Kiểu | Nội dung |
 |---|---|---|
-| Trạng thái card mạng (NIC) | State timeline | Mỗi card vật lý một thanh (1G, 10G, 25G…), tên kèm tốc độ tối đa (`eno16 [1G]`, `nic0 [10G]`). `✔ Chạy 10G` (xanh, đúng tốc độ tối đa) · `▲ Chạy 100M (thấp hơn tối đa)` (cam) · `⚠ … · 1–99 lỗi` (vàng) · `▲ … · 100–999 lỗi` (cam) · `⛔ … · 1K+ lỗi` / `⛔ MẤT LINK` (đỏ) |
-| Tốc độ card mạng theo thời gian | Time series | Tốc độ link theo thời gian. Rơi về 0 = mất link, bước xuống = đổi sang tốc độ thấp hơn. Cột `Min` = 0 nghĩa là đã có lúc rớt link |
-| Corosync - link hoạt động | Stat | Số link Corosync tới được mọi node: `✔ 2/2 link hoạt động` (xanh) · `▲ 1/2 link hoạt động` (cam, một link mất kết nối, cluster vẫn chạy nhờ link còn lại) · `⛔ 0/2 link hoạt động` (đỏ) |
-| Sức khỏe link Corosync | Time series | Mỗi link **một đường** = % số node kết nối được qua link đó (100% = thông, 0% = mất). Nền xanh/cam/đỏ. Tên đường ghi rõ link chạy qua đâu: `link0 · vlan3001 → nic0+nic1 · 10G`; link chưa có IP trên node: `link1 · 10.80.55.101 · node không có IP này`. Bảng bên phải: Last và Min (Min = 0% là link đã từng rớt) |
-| Gói UDP lỗi/mất | Stat | Gói UDP lỗi/rớt trên node (Corosync chạy bằng UDP) |
+| NIC Link Status | State timeline | Mỗi card vật lý một thanh (1G, 10G, 25G…), tên kèm tốc độ tối đa (`eno16 [1G]`, `ens3f0np0 [25G]`). `✔ UP 10G` (xanh, đúng tốc độ tối đa) · `▲ UP 10G (below max)` (cam, chạy chậm hơn khả năng của card) · `⚠ … · 1–99 Errors` (vàng) · `▲ … · 100–999 Errors` (cam) · `⛔ … · 1K+ Errors` / `⛔ DOWN` (đỏ) |
+| NIC Link Speed | Time series | Tốc độ link theo thời gian. Rơi về 0 = mất link, bước xuống = đổi sang tốc độ thấp hơn. Cột `Min` = 0 nghĩa là đã có lúc rớt link |
+| Corosync Links | Stat | **Mỗi link một ô có tên**: `link0 · vlan3001 · 10G` → `✔ UP` (xanh), `link1 · 10.80.55.101 · no local IP` → `⛔ DOWN` (đỏ), `▲ DEGRADED 1/2` (cam) khi link chỉ tới được một phần node. `no local IP` = node chưa có interface mang IP của link |
+| Corosync Link Health | Time series | Mỗi link **một đường** = % số node kết nối được qua link đó (100% = thông, 0% = mất). Nền xanh/cam/đỏ. Tên đường: `link0 · vlan3001 → ens3f0np0+ens3f1np1 · 10G`, `link1 · 10.80.55.101 · no local IP`. Bảng bên phải: Last và Min (Min = 0% là link đã từng rớt) |
+| UDP Packet Loss | Stat | Gói UDP lỗi/rớt trên node (Corosync chạy bằng UDP) |
 | Hardware RX Drops (Cumulative) | Time series | Gói RX bị rớt (tích lũy) theo từng interface |
 | NIC Link & Traffic (Since Boot) | Bảng | Link, Speed, Max Speed, RX/TX Bytes, RX/TX Packets, Multicast. Link/Speed tô màu theo trạng thái |
 | NIC RX Errors (Since Boot) | Bảng | Errors, CRC, Length, Missed, Dropped, Overrun, FIFO, Frame, No Handler |
