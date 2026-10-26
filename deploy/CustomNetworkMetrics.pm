@@ -111,6 +111,35 @@ sub iface_of_addr {
     return '';
 }
 
+our $SYSNET = '/sys/class/net';
+
+# Card vật lý nằm dưới một interface: đi xuống qua lower_* (vlan -> bond/bridge -> card)
+sub physical_nics {
+    my ($iface, $depth) = @_;
+    $depth //= 0;
+    return () if !$iface || $depth > 5 || !-e "$SYSNET/$iface";
+    return ($iface) if -e "$SYSNET/$iface/device";
+
+    my %seen;
+    foreach my $lower (glob("$SYSNET/$iface/lower_*")) {
+        (my $name = $lower) =~ s#.*/lower_##;
+        $seen{$_} = 1 foreach physical_nics($name, $depth + 1);
+    }
+    return sort keys %seen;
+}
+
+# Tốc độ cao nhất (Mb/s) trong các card đang UP; 0 nếu không đọc được
+sub nics_speed {
+    my $max = 0;
+    foreach my $nic (@_) {
+        my $op = read_file("$SYSNET/$nic/operstate") // '';
+        next if $op ne 'up';
+        my $sp = read_file("$SYSNET/$nic/speed");
+        $max = $sp if defined($sp) && $sp =~ /^\d+$/ && $sp < 1000000 && $sp > $max;
+    }
+    return $max + 0;
+}
+
 # Số liệu từng link corosync: số node kết nối được, link UP khi kết nối được tới mọi node
 sub get_corosync_links {
     my $global = {};
@@ -133,8 +162,16 @@ sub get_corosync_links {
         $global->{"corosync_link${id}_peers"} = $l->{peers};
         $global->{"corosync_link${id}_connected"} = $l->{connected};
         $global->{"corosync_link${id}_up"} = $link_up;
+        $global->{"corosync_link${id}_addr"} = $l->{addr} if $l->{addr} ne '';
         my $iface = iface_of_addr($l->{addr});
-        $global->{"corosync_link${id}_iface"} = $iface if $iface ne '';
+        next if $iface eq '';
+        $global->{"corosync_link${id}_iface"} = $iface;
+        # Card vật lý thật bên dưới (vd vlan3001 -> ens3f0np0+ens3f1np1) và tốc độ, để biết link chạy 10G hay 1G
+        my @nics = physical_nics($iface);
+        if (@nics) {
+            $global->{"corosync_link${id}_nics"} = join('+', @nics);
+            $global->{"corosync_link${id}_speed"} = nics_speed(@nics);
+        }
     }
     $global->{corosync_links} = scalar(keys %$links);
     $global->{corosync_links_up} = $up;

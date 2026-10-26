@@ -700,7 +700,7 @@
             {
               "type": "regex",
               "options": {
-                "pattern": "/UP/",
+                "pattern": "/^✔/",
                 "result": {
                   "color": "#56A64B",
                   "index": 0
@@ -710,7 +710,7 @@
             {
               "type": "regex",
               "options": {
-                "pattern": "/DEGRADED/",
+                "pattern": "/^▲/",
                 "result": {
                   "color": "#FF9830",
                   "index": 1
@@ -720,7 +720,7 @@
             {
               "type": "regex",
               "options": {
-                "pattern": "/DOWN/",
+                "pattern": "/^⛔/",
                 "result": {
                   "color": "#F2495C",
                   "index": 2
@@ -771,13 +771,13 @@
             "type": "influxdb",
             "uid": "${dsProxmox}"
           },
-          "query": "from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"system\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"corosync_links\" or r[\"_field\"] == \"corosync_links_up\")\n  |> last()\n  |> keep(columns: [\"host\", \"_field\", \"_value\"])\n  |> group()\n  |> pivot(rowKey: [\"host\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> map(fn: (r) => {\n      total = if exists r.corosync_links then int(v: r.corosync_links) else 0\n      up = if exists r.corosync_links_up then int(v: r.corosync_links_up) else 0\n      ratio = string(v: up) + \"/\" + string(v: total)\n      return { host: r.host, _value: if up == total then \"✔ UP \" + ratio\n                                     else if up == 0 then \"⛔ DOWN \" + ratio else \"▲ DEGRADED \" + ratio }\n  })\n  |> group(columns: [\"host\"])",
+          "query": "from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"system\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"corosync_links\" or r[\"_field\"] == \"corosync_links_up\")\n  |> last()\n  |> keep(columns: [\"host\", \"_field\", \"_value\"])\n  |> group()\n  |> pivot(rowKey: [\"host\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> map(fn: (r) => {\n      total = if exists r.corosync_links then int(v: r.corosync_links) else 0\n      up = if exists r.corosync_links_up then int(v: r.corosync_links_up) else 0\n      txt = string(v: up) + \" of \" + string(v: total) + \" links UP\"\n      return { host: r.host, _value: if total > 0 and up == total then \"✔ \" + txt\n                                     else if up == 0 then \"⛔ \" + txt else \"▲ \" + txt }\n  })\n  |> group(columns: [\"host\"])",
           "refId": "A"
         }
       ],
       "title": "Corosync Links",
       "type": "stat",
-      "description": "Corosync links (link0, link1...) that reach every other cluster node, from \"corosync-cfgtool -s\".\n✔ green \"UP 2/2\" = all links healthy\n▲ orange \"DEGRADED 1/2\" = a link lost at least one node (cluster still runs on the other link)\n⛔ red \"DOWN\" = no link reaches the other nodes. See \"Corosync Link Timeline\"."
+      "description": "How many corosync links (link0, link1...) reach every other cluster node, from \"corosync-cfgtool -s\".\n✔ green \"2 of 2 links UP\" = all links healthy\n▲ orange \"1 of 2 links UP\" = one link lost at least one node; the cluster still runs on the other link\n⛔ red \"0 of 2 links UP\" = no link reaches the other nodes\nSee \"Corosync Link Health\" for which link is down and which interface / NIC / speed it uses."
     },
     {
       "datasource": {
@@ -1824,74 +1824,74 @@
         "type": "influxdb",
         "uid": "${dsProxmox}"
       },
-      "description": "State of each corosync link over time and the interface it runs on, e.g. \"link0 (vmbr0)\", \"link1 (nic2)\". Value = nodes reachable on that link. \"(no local IP)\" = this node has no interface with the link address (link not configured on this node / interface down or without IP).\n✔ green \"UP 2/2 nodes\" = reaches every node\n▲ orange DEGRADED = some nodes unreachable\n⛔ red DOWN = no node reachable",
+      "description": "One smooth line per corosync link = % of the other cluster nodes reachable on that link (from \"corosync-cfgtool -s\"). Line name = link · interface → physical NIC(s) · speed, e.g. \"link0 · vlan3001 → ens3f0np0+ens3f1np1 · 10G\".\nGreen band 100% = link reaches every node · orange band = some nodes unreachable · red band 0% = link down.\nLegend: Last = current value, Min = 0% means the link dropped at some point in the selected range.\n\"<ip> · no local IP\" = this node has no interface with the link address.",
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "fixed",
-            "fixedColor": "text"
+            "mode": "palette-classic"
           },
           "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "% nodes reachable",
             "axisPlacement": "auto",
-            "fillOpacity": 85,
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "opacity",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
               "viz": false
             },
             "insertNulls": false,
-            "lineWidth": 1,
-            "spanNulls": false
-          },
-          "decimals": 1,
-          "displayName": "${__field.labels.link}",
-          "mappings": [
-            {
-              "type": "regex",
-              "options": {
-                "pattern": "/UP/",
-                "result": {
-                  "color": "#56A64B",
-                  "index": 0
-                }
-              }
+            "lineInterpolation": "smooth",
+            "lineWidth": 3,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
             },
-            {
-              "type": "regex",
-              "options": {
-                "pattern": "/DEGRADED/",
-                "result": {
-                  "color": "#FF9830",
-                  "index": 1
-                }
-              }
+            "showPoints": "never",
+            "showValues": false,
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
             },
-            {
-              "type": "regex",
-              "options": {
-                "pattern": "/DOWN/",
-                "result": {
-                  "color": "#F2495C",
-                  "index": 2
-                }
-              }
+            "thresholdsStyle": {
+              "mode": "area"
             }
-          ],
+          },
+          "decimals": 0,
+          "displayName": "${__field.labels.link}",
+          "mappings": [],
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "text"
+                "color": "#F2495C",
+                "value": null
+              },
+              {
+                "color": "#FF9830",
+                "value": 1
+              },
+              {
+                "color": "#56A64B",
+                "value": 99.5
               }
             ]
           },
-          "unit": "none",
-          "noValue": "No corosync link data (re-run install)"
+          "unit": "percent",
+          "max": 110
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 6,
+        "h": 7,
         "w": 24,
         "x": 0,
         "y": 13
@@ -1899,34 +1899,34 @@
       "id": 10003,
       "interval": "1m",
       "options": {
-        "alignValue": "center",
         "legend": {
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": false
+          "calcs": [
+            "lastNotNull",
+            "min"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "width": 420
         },
-        "mergeValues": true,
-        "rowHeight": 0.8,
-        "showValue": "always",
         "tooltip": {
           "hideZeros": false,
           "mode": "multi",
-          "sort": "none"
+          "sort": "desc"
         }
       },
-      "pluginVersion": "13.2.0",
       "targets": [
         {
           "datasource": {
             "type": "influxdb",
             "uid": "${dsProxmox}"
           },
-          "query": "import \"strings\"\n\nfrom(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"system\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] =~ /^corosync_link[0-9]+_(connected|peers|iface)$/)\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> map(fn: (r) => ({ _time: r._time, _value: string(v: r._value),\n      link: strings.split(v: r._field, t: \"_\")[1], metric: strings.split(v: r._field, t: \"_\")[2] }))\n  |> group(columns: [\"link\"])\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"metric\"], valueColumn: \"_value\")\n  |> map(fn: (r) => {\n      c = if exists r.connected then int(v: r.connected) else 0\n      n = if exists r.peers then int(v: r.peers) else 0\n      iface = if exists r.iface then r.iface else \"no local IP\"\n      state = if n > 0 and c == n then \"✔ UP\" else if c > 0 then \"▲ DEGRADED\" else \"⛔ DOWN\"\n      return { _time: r._time, link: r.link + \" (\" + iface + \")\",\n               _value: state + \" \" + string(v: c) + \"/\" + string(v: n) + \" nodes\" }\n  })\n  |> group(columns: [\"link\"])",
+          "query": "import \"strings\"\n\nspeedLabel = (v) => if v >= 1000.0 then string(v: v / 1000.0) + \"G\" else string(v: int(v: v)) + \"M\"\n\nfrom(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"system\" and r[\"host\"] == \"${server}\")\n  |> filter(fn: (r) => r[\"_field\"] =~ /^corosync_link[0-9]+_(connected|peers|iface|addr|nics|speed)$/)\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> map(fn: (r) => ({ _time: r._time, _value: string(v: r._value),\n      link: strings.split(v: r._field, t: \"_\")[1], metric: strings.split(v: r._field, t: \"_\")[2] }))\n  |> group(columns: [\"link\"])\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"metric\"], valueColumn: \"_value\")\n  |> map(fn: (r) => {\n      c = if exists r.connected then float(v: r.connected) else 0.0\n      n = if exists r.peers then float(v: r.peers) else 0.0\n      sp = if exists r.speed then float(v: r.speed) else 0.0\n      addr = if exists r.addr then r.addr else \"?\"\n      where = if exists r.iface\n          then r.iface + (if exists r.nics then \" → \" + r.nics else \"\") + (if sp > 0.0 then \" · \" + speedLabel(v: sp) else \"\")\n          else addr + \" · no local IP\"\n      // % of the other cluster nodes reachable on this link (100 = healthy, 0 = down)\n      return { _time: r._time, link: r.link + \" · \" + where,\n               _value: if n > 0.0 then c / n * 100.0 else 0.0 }\n  })\n  |> group(columns: [\"link\"])\n  |> sort(columns: [\"_time\"])",
           "refId": "A"
         }
       ],
-      "title": "Corosync Link Timeline",
-      "type": "state-timeline"
+      "title": "Corosync Link Health",
+      "type": "timeseries"
     },
     {
       "datasource": {
@@ -1999,7 +1999,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 19
+        "y": 20
       },
       "id": 20030,
       "interval": "1m",
@@ -2150,7 +2150,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 26
+        "y": 27
       },
       "id": 50,
       "options": {
@@ -2248,7 +2248,7 @@
         "h": 11,
         "w": 24,
         "x": 0,
-        "y": 34
+        "y": 35
       },
       "id": 9993,
       "options": {
@@ -2687,7 +2687,7 @@
         "h": 5,
         "w": 24,
         "x": 0,
-        "y": 45
+        "y": 46
       },
       "id": 9995,
       "options": {
@@ -2894,7 +2894,7 @@
         "h": 5,
         "w": 24,
         "x": 0,
-        "y": 50
+        "y": 51
       },
       "id": 20010,
       "options": {
@@ -3102,7 +3102,7 @@
         "h": 5,
         "w": 24,
         "x": 0,
-        "y": 55
+        "y": 56
       },
       "id": 20011,
       "options": {
@@ -3287,7 +3287,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 60
+        "y": 61
       },
       "id": 9996,
       "options": {
@@ -3399,7 +3399,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 68
+        "y": 69
       },
       "id": 9997,
       "options": {
@@ -3573,7 +3573,7 @@
         "h": 10,
         "w": 12,
         "x": 0,
-        "y": 76
+        "y": 77
       },
       "id": 9998,
       "options": {
@@ -3690,7 +3690,7 @@
         "h": 10,
         "w": 12,
         "x": 12,
-        "y": 76
+        "y": 77
       },
       "id": 9999,
       "interval": "1m",
@@ -3734,7 +3734,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 86
+        "y": 87
       },
       "id": 49,
       "panels": [],
@@ -3809,7 +3809,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 87
+        "y": 88
       },
       "id": 16,
       "options": {
@@ -3854,7 +3854,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 94
+        "y": 95
       },
       "id": 23,
       "panels": [],
@@ -3949,7 +3949,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 95
+        "y": 96
       },
       "id": 21,
       "options": {
@@ -4068,7 +4068,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 95
+        "y": 96
       },
       "id": 24,
       "options": {
@@ -4167,7 +4167,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 104
+        "y": 105
       },
       "id": 26,
       "options": {
@@ -4267,7 +4267,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 104
+        "y": 105
       },
       "id": 27,
       "options": {
@@ -4369,7 +4369,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 112
+        "y": 113
       },
       "id": 30,
       "options": {
@@ -4472,7 +4472,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 112
+        "y": 113
       },
       "id": 31,
       "options": {
@@ -4575,7 +4575,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 120
+        "y": 121
       },
       "id": 34,
       "options": {
@@ -4675,7 +4675,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 120
+        "y": 121
       },
       "id": 35,
       "options": {

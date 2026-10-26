@@ -110,9 +110,14 @@ remote_check() {
             if (defined $g->{corosync_links}) {
                 printf "  corosync: %d/%d link UP\n", $g->{corosync_links_up}, $g->{corosync_links};
                 foreach my $id (sort { $a <=> $b } map { /^corosync_link(\d+)_peers$/ ? $1 : () } keys %$g) {
-                    printf "    link%-2s %-12s %-4s %s/%s node ket noi\n", $id, $g->{"corosync_link${id}_iface"} // "?",
+                    my $sp = $g->{"corosync_link${id}_speed"} // 0;
+                    printf "    link%-2s %-4s %s/%s node ket noi  ip=%s  iface=%s  card=%s  %s\n", $id,
                         $g->{"corosync_link${id}_up"} ? "UP" : "DOWN",
-                        $g->{"corosync_link${id}_connected"}, $g->{"corosync_link${id}_peers"};
+                        $g->{"corosync_link${id}_connected"}, $g->{"corosync_link${id}_peers"},
+                        $g->{"corosync_link${id}_addr"} // "?",
+                        $g->{"corosync_link${id}_iface"} // "(khong co IP nay tren node)",
+                        $g->{"corosync_link${id}_nics"} // "-",
+                        $sp >= 1000 ? ($sp / 1000) . "G" : $sp > 0 ? "${sp}M" : "";
                 }
             } else {
                 print "  corosync: khong doc duoc corosync-cfgtool (node khong o trong cluster?)\n";

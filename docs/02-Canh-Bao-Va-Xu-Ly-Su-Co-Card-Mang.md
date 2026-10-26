@@ -59,7 +59,7 @@ from(bucket: "proxmox-cluster-deco")
   |> group(columns: ["host"])
 ```
 
-Giá trị là **số link đang lỗi** trên node. Điều kiện: **Reduce** Last, **Threshold** IS ABOVE 0, **Pending period** 1m. Xem panel **Corosync Link Timeline** để biết link nào (và chạy qua card nào) bị mất.
+Giá trị là **số link đang lỗi** trên node. Điều kiện: **Reduce** Last, **Threshold** IS ABOVE 0, **Pending period** 1m. Xem panel **Corosync Link Health** để biết link nào (và chạy qua card nào) bị mất.
 
 > Ba truy vấn trên là mẫu. Hãy bấm **Preview** trong Alert rule để chạy thử trước khi bật gửi thông báo.
 
@@ -75,7 +75,7 @@ Giá trị là **số link đang lỗi** trên node. Điều kiện: **Reduce** 
 | `collisions` khác 0 | Link đang half-duplex | Kiểm tra duplex, ép full-duplex ở cả hai đầu |
 | Card 10G hiện `UP 1G` (màu cam) | SFP 1G, cáp không đạt chuẩn, port switch cấu hình 1G, auto-negotiation sai | Xem `ethtool <if>`, kiểm tra loại module và cấu hình port switch |
 | `udp_loss` tăng | Gói UDP bị mất ở node, ảnh hưởng Corosync | Kiểm tra mạng Corosync, tải CPU, `rx_missed_errors` của card chạy Corosync |
-| Corosync Links `▲ DEGRADED 1/2` | Một link Corosync mất kết nối tới ít nhất 1 node (card/cáp/switch của link đó, hoặc sai IP `ringX_addr`) | Xem Corosync Link Timeline để biết link và card nào; trên node chạy `corosync-cfgtool -s` và `ip -s link show <card>` |
+| Corosync Links `▲ 1 of 2 links UP` | Một link Corosync mất kết nối tới ít nhất 1 node (card/cáp/switch của link đó, hoặc sai IP `ringX_addr`) | Xem Corosync Link Health để biết link và card nào; trên node chạy `corosync-cfgtool -s` và `ip -s link show <card>` |
 
 ### Quy trình xử lý khi thấy lỗi CRC
 

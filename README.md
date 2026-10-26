@@ -28,7 +28,7 @@ Bộ công cụ này bổ sung các chỉ số mạng ở mức thấp vào ngay
 | Link chập chờn (flapping) | Panel NIC Link Status và NIC Link Speed theo thời gian |
 | Card 25G chỉ chạy 10G | So sánh `link_speed` với `link_speed_max` |
 | Ring buffer đầy, CPU xử lý không kịp | `rx_missed_errors`, `rx_fifo_errors` |
-| Corosync mất một link (link0/link1) | `corosync_links_up` nhỏ hơn `corosync_links`, panel Corosync Links / Corosync Link Timeline |
+| Corosync mất một link (link0/link1) | `corosync_links_up` nhỏ hơn `corosync_links`, panel Corosync Links / Corosync Link Health |
 | Gói UDP Corosync bị mất | `udp_loss` |
 
 **Điểm mạnh:**
@@ -114,9 +114,12 @@ Card ảo (`tap*`, `veth*`, `fwbr*`, `fwpr*`, `fwln*`) chỉ lấy trạng thái
 | `corosync_link<N>_peers` | Số node khác trong cluster (theo link N) |
 | `corosync_link<N>_connected` | Số node kết nối được qua link N |
 | `corosync_link<N>_up` | `1` = link N tới được mọi node, `0` = mất ít nhất 1 node |
-| `corosync_link<N>_iface` | Card mạng mà link N chạy qua (theo IP của link), ví dụ `vmbr0`, `nic2` |
+| `corosync_link<N>_iface` | Interface đang giữ IP của link N, ví dụ `vlan3001`, `vmbr0`, `nic2` |
+| `corosync_link<N>_addr` | IP của node trên link N (từ `corosync-cfgtool -s`) |
+| `corosync_link<N>_nics` | Card vật lý thật bên dưới interface (dò qua VLAN → bond/bridge → card), ví dụ `ens3f0np0+ens3f1np1` |
+| `corosync_link<N>_speed` | Tốc độ (Mb/s) của card vật lý đang UP bên dưới, để biết link chạy 10G hay 1G |
 
-Ví dụ cluster có 2 link: link0 chạy chung cặp card 10G (`vmbr0`), link1 chạy riêng card 1G `nic2`. Khi cả hai khỏe, `corosync_links_up = 2`. Mất `nic2` thì giá trị còn `1`, panel Corosync Links chuyển sang `▲ DEGRADED 1/2`, cluster vẫn chạy trên link0.
+Ví dụ cluster có 2 link: link0 chạy chung cặp card 10G (`vlan3001` trên `ens3f0np0+ens3f1np1`), link1 chạy riêng card 1G `nic2`. Khi cả hai khỏe, `corosync_links_up = 2` và panel hiện `✔ 2 of 2 links UP`. Mất `nic2` thì giá trị còn `1`, panel Corosync Links chuyển sang `▲ 1 of 2 links UP`, cluster vẫn chạy trên link0.
 
 ---
 
@@ -269,8 +272,8 @@ Kết quả mẫu khi cài thành công:
   [OK] pvestatd dang chay
   udp_loss=0 corosync_conn=2
   corosync: 2/2 link UP
-    link0  vmbr0        UP   2/2 node ket noi
-    link1  nic2         UP   2/2 node ket noi
+    link0  UP   2/2 node ket noi  ip=10.30.1.11  iface=vlan3001  card=ens3f0np0+ens3f1np1  10G
+    link1  UP   2/2 node ket noi  ip=10.10.10.1  iface=nic2  card=nic2  1G
   enp24s0f2np2     UP    10000/10000  rx_errors=67 rx_dropped=685 tx_dropped=878 rx_crc=67 (+17 counter ethtool)
 Hoan thanh: 1 node OK
 ```
@@ -341,8 +344,8 @@ Dashboard giữ các panel tổng quan của Proxmox (CPU, RAM, storage, VM) và
 |---|---|---|
 | NIC Link Status | State timeline | Mỗi card vật lý một thanh (1G, 10G, 25G…), tên kèm tốc độ tối đa (`nic2 [1G]`, `ens3f0np0 [25G]`). Gộp trạng thái link và lỗi: `✔ UP 10G` (xanh, đúng tốc độ tối đa của card) · `▲ UP 10G (below max)` (cam, chạy dưới tốc độ tối đa) · `⚠ … · 1–99 Errors` (vàng) · `▲ … · 100–999 Errors` (cam) · `⛔ … · 1K+ Errors` / `⛔ DOWN` (đỏ) |
 | NIC Link Speed | Time series | Tốc độ link theo thời gian, vạch nét đứt ở 10G. Tụt về 0 = DOWN, bước xuống = đổi tốc độ. Cột `Min` = 0 nghĩa là đã có lúc rớt link |
-| Corosync Links | Stat | `✔ UP 2/2` (xanh) = mọi link Corosync tới được mọi node · `▲ DEGRADED 1/2` (cam) = một link mất node · `⛔ DOWN` (đỏ) |
-| Corosync Link Timeline | State timeline | Mỗi link một thanh kèm card, ví dụ `link0 (vmbr0)`, `link1 (nic2)`: `✔ UP 2/2 nodes` / `▲ DEGRADED 1/2 nodes` / `⛔ DOWN` theo thời gian |
+| Corosync Links | Stat | Số link Corosync tới được mọi node: `✔ 2 of 2 links UP` (xanh) · `▲ 1 of 2 links UP` (cam, một link mất node, cluster vẫn chạy trên link còn lại) · `⛔ 0 of 2 links UP` (đỏ) |
+| Corosync Link Health | Time series | Mỗi link một đường cong mượt = **% số node kết nối được** qua link đó (100% = thông tới mọi node, 0% = DOWN). Nền tô dải xanh (100%) · cam (mất một phần node) · đỏ (0%). Tên đường ghi rõ link chạy qua đâu: `link0 · vlan3001 → ens3f0np0+ens3f1np1 · 10G`, `link1 · nic2 → nic2 · 1G`; node không có IP của link thì là `<ip> · no local IP`. Bảng chú thích có Last và Min (Min = 0% là link đã từng rớt) |
 | UDP Packet Loss | Stat | Gói UDP lỗi/rớt trên node |
 | Hardware RX Drops (Cumulative) | Time series | Gói RX bị rớt (tích lũy) theo từng interface |
 | NIC Link & Traffic (Since Boot) | Bảng | Link, Speed, Max Speed, RX/TX Bytes, RX/TX Packets, Multicast. Link/Speed tô màu theo trạng thái |

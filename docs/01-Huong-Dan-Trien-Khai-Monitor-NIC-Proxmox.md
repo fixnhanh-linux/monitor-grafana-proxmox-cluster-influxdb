@@ -70,7 +70,10 @@ Script chỉ chèn một đoạn vào `update_node_status` trong file `/usr/shar
 | `corosync_links_up` | Số link tới được **mọi** node khác. Cluster 2 link khỏe = `2` |
 | `corosync_link<N>_peers` / `_connected` | Số node khác / số node kết nối được qua link N |
 | `corosync_link<N>_up` | `1` = link N tới được mọi node |
-| `corosync_link<N>_iface` | Card mà link N chạy qua (theo IP của link), ví dụ `vmbr0`, `nic2` |
+| `corosync_link<N>_iface` | Interface đang giữ IP của link N, ví dụ `vlan3001`, `vmbr0`, `nic2` |
+| `corosync_link<N>_addr` | IP của node trên link N (từ `corosync-cfgtool -s`) |
+| `corosync_link<N>_nics` | Card vật lý thật bên dưới interface (dò qua VLAN → bond/bridge → card), ví dụ `ens3f0np0+ens3f1np1` |
+| `corosync_link<N>_speed` | Tốc độ (Mb/s) của card vật lý đang UP bên dưới, để biết link chạy 10G hay 1G |
 
 `corosync_conn` chỉ đếm socket UDP cổng 5404/5405, không cho biết link có thông. Dùng `corosync_links_up` để giám sát.
 
@@ -190,8 +193,8 @@ Kết quả mẫu:
   [OK] pvestatd dang chay
   udp_loss=0 corosync_conn=2
   corosync: 2/2 link UP
-    link0  vmbr0        UP   2/2 node ket noi
-    link1  nic2         UP   2/2 node ket noi
+    link0  UP   2/2 node ket noi  ip=10.30.1.11  iface=vlan3001  card=ens3f0np0+ens3f1np1  10G
+    link1  UP   2/2 node ket noi  ip=10.10.10.1  iface=nic2  card=nic2  1G
   enp24s0f2np2     UP    10000/10000  rx_errors=67 rx_dropped=685 tx_dropped=878 rx_crc=67 (+17 counter ethtool)
 Hoan thanh: 1 node OK
 ```
@@ -226,7 +229,7 @@ scp root@10.0.0.11:/root/monitor-grafana-proxmox-cluster-influxdb/dashboard-graf
 
 Mở dashboard, chọn **Datasource** (datasource InfluxDB Flux trỏ tới bucket của cluster), **Server** = pve1, thời gian **Last 15 minutes**.
 
-- **Kết quả đúng:** panel "NIC Link Status" hiện mọi card vật lý (kể cả card 1G), panel "Corosync Links" hiện `✔ UP 2/2` nếu cluster có 2 link; các bảng "NIC Link & Traffic / RX Errors / TX Errors (Since Boot)" khớp `ip -s link`.
+- **Kết quả đúng:** panel "NIC Link Status" hiện mọi card vật lý (kể cả card 1G), panel "Corosync Links" hiện `✔ 2 of 2 links UP` nếu cluster có 2 link; các bảng "NIC Link & Traffic / RX Errors / TX Errors (Since Boot)" khớp `ip -s link`.
 - **Nếu trống:** kiểm tra đã chọn đúng Datasource, đợi thêm 1 phút, chạy `./deploy-monitor-nic-proxmox.sh check <ip-pve1>`.
 
 ### Bước 7: Cài toàn cluster (pve1)
@@ -297,8 +300,8 @@ Import `dashboard-<bucket>.json` do lệnh `dashboard` tạo (Bước 6). Mọi 
 |---|---|---|
 | NIC Link Status | State timeline | Mỗi card vật lý một thanh (1G, 10G, 25G…), tên kèm tốc độ tối đa (`nic2 [1G]`). `✔ UP 10G` (xanh, đúng tốc độ tối đa của card) · `▲ UP 10G (below max)` (cam) · `⚠ … · 1–99 Errors` (vàng) · `▲ … · 100–999 Errors` (cam) · `⛔ … · 1K+ Errors` / `⛔ DOWN` (đỏ) |
 | NIC Link Speed | Time series | Tốc độ link theo thời gian, vạch nét đứt ở 10G. Tụt về 0 = DOWN, bước xuống = đổi tốc độ. Cột `Min` = 0 nghĩa là đã có lúc rớt link |
-| Corosync Links | Stat | `✔ UP 2/2` / `▲ DEGRADED 1/2` / `⛔ DOWN`: số link Corosync tới được mọi node |
-| Corosync Link Timeline | State timeline | Mỗi link một thanh kèm card, ví dụ `link1 (nic2)`, trạng thái theo thời gian |
+| Corosync Links | Stat | Số link Corosync tới được mọi node: `✔ 2 of 2 links UP` (xanh) · `▲ 1 of 2 links UP` (cam, một link mất node, cluster vẫn chạy trên link còn lại) · `⛔ 0 of 2 links UP` (đỏ) |
+| Corosync Link Health | Time series | Mỗi link một đường cong mượt = **% số node kết nối được** qua link đó (100% = thông tới mọi node, 0% = DOWN). Nền tô dải xanh (100%) · cam (mất một phần node) · đỏ (0%). Tên đường ghi rõ link chạy qua đâu: `link0 · vlan3001 → ens3f0np0+ens3f1np1 · 10G`, `link1 · nic2 → nic2 · 1G`; node không có IP của link thì là `<ip> · no local IP`. Bảng chú thích có Last và Min (Min = 0% là link đã từng rớt) |
 | UDP Packet Loss | Stat | Gói UDP lỗi/rớt trên node |
 | Hardware RX Drops (Cumulative) | Time series | Gói RX bị rớt (tích lũy) theo từng interface |
 | NIC Link & Traffic (Since Boot) | Bảng | Link, Speed, Max Speed, RX/TX Bytes, RX/TX Packets, Multicast. Link/Speed tô màu theo trạng thái |
