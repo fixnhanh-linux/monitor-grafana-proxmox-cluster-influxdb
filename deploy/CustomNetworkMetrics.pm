@@ -112,8 +112,32 @@ sub iface_of_addr {
 }
 
 our $SYSNET = '/sys/class/net';
+our $OVS_VSCTL = (grep { -x $_ } qw(/usr/bin/ovs-vsctl /usr/sbin/ovs-vsctl))[0] // '';
 
-# Card vật lý nằm dưới một interface: đi xuống qua lower_* (vlan -> bond/bridge -> card)
+sub run_cmd {
+    my (@cmd) = @_;
+    my $out = '';
+    if (open(my $fh, '-|', '/usr/bin/timeout', '2', @cmd)) {
+        local $/;
+        $out = <$fh> // '';
+        close($fh);
+    }
+    return $out;
+}
+
+# Open vSwitch: cổng OVS không có lower_* trong sysfs -> hỏi ovs-vsctl bridge chứa iface
+# rồi lấy các card vật lý cắm vào bridge đó (vd vlan3001 -> vmbr0 -> nic0, nic1)
+sub ovs_physical_nics {
+    my ($iface) = @_;
+    return () if !$OVS_VSCTL;
+    my $br = run_cmd($OVS_VSCTL, 'iface-to-br', $iface);
+    $br =~ s/\s+$//;
+    return () if $br eq '' || $br =~ /\s/;
+    return grep { -e "$SYSNET/$_/device" } split(/\s+/, run_cmd($OVS_VSCTL, 'list-ifaces', $br));
+}
+
+# Card vật lý nằm dưới một interface: đi xuống qua lower_* (vlan -> bond/bridge -> card),
+# với Open vSwitch thì hỏi ovs-vsctl
 sub physical_nics {
     my ($iface, $depth) = @_;
     $depth //= 0;
@@ -124,6 +148,9 @@ sub physical_nics {
     foreach my $lower (glob("$SYSNET/$iface/lower_*")) {
         (my $name = $lower) =~ s#.*/lower_##;
         $seen{$_} = 1 foreach physical_nics($name, $depth + 1);
+    }
+    if (!%seen && $depth == 0) {
+        $seen{$_} = 1 foreach ovs_physical_nics($iface);
     }
     return sort keys %seen;
 }
