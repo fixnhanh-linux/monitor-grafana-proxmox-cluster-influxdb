@@ -11,7 +11,7 @@
 #   -i URL        INFLUX_URL      URL InfluxDB 2.x, vi du http://10.0.0.5:8086
 #   -O ORG        INFLUX_ORG      Organization InfluxDB
 #   -b BUCKET     INFLUX_BUCKET   Bucket ma Proxmox ghi vao
-#   -k TOKEN      INFLUX_TOKEN    Token InfluxDB (doc bucket)
+#   -k TOKEN      INFLUX_TOKEN    Token InfluxDB (doc bucket), hoac token admin: tu tao bucket + token rieng
 #   -u URL        GRAFANA_URL     URL Grafana, vi du https://10.0.0.5:3000
 #   -t TOKEN      GRAFANA_TOKEN   Token service account Grafana (role Admin neu can tao datasource)
 #   -d TEN_DS     GRAFANA_DS      Ten datasource InfluxDB (Flux) co san. Bo trong: tim theo URL+org, khong co thi tao moi
