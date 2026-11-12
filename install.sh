@@ -9,6 +9,8 @@
 #
 # Chay -y (khong hoi) thi dat truoc cac bien can thiet, vi du:
 #   export INFLUX_URL=http://<ip-influx>:8086 INFLUX_ORG=<org> INFLUX_BUCKET=<bucket> INFLUX_TOKEN='...'
+#   (INFLUX_TOKEN la token admin/All-Access: tu tao bucket neu chua co + token rieng doc/ghi bucket;
+#    ten bucket/token mac dinh proxmox-cluster-vm-<ten host>, da co thi dung lai; INFLUX_ORG bo trong duoc, INFLUX_RETENTION_DAYS=<so ngay> khi tao bucket, mac dinh 0 = vo han)
 #   export GRAFANA_URL=https://<ip-grafana>:3000 GRAFANA_TOKEN='glsa_xxx' DASH_TITLE='Proxmox Cluster A'
 #
 # Cac buoc: 1) kiem tra moi truong  2) thong tin InfluxDB (+ cap nhat Metric Server Proxmox)

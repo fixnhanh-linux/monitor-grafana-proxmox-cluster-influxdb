@@ -181,7 +181,9 @@ bash /root/nic-monitor/install.sh
 
 Chuẩn bị trước 2 token:
 
-- **Token InfluxDB** có quyền đọc/ghi bucket của cluster (InfluxDB UI → **Load Data → API Tokens**).
+- **Token InfluxDB**, một trong hai loại (InfluxDB UI → **Load Data → API Tokens**):
+  - **Token admin / All-Access** (khuyên dùng khi lắp cluster mới): chỉ cần nhập URL + token, script **tự tạo bucket** (nếu chưa có, hỏi số ngày lưu) và **tự tạo token riêng chỉ đọc/ghi bucket đó**, rồi dùng token riêng này cho Metric Server Proxmox và datasource Grafana. Token admin không bị lưu lại. Tên mặc định của **bucket và token** là `proxmox-cluster-vm-<tên host Proxmox>` (ví dụ `proxmox-cluster-vm-pve01`). Organization để trống được nếu token chỉ thấy 1 org. Nếu bucket hoặc token tên đó **đã có thì báo `[TRUNG]` và dùng lại, không tạo mới**.
+  - **Token của bucket có sẵn** (quyền đọc/ghi bucket): dùng luôn, cần nhập đúng Organization.
 - **Token Grafana**: **Administration → Users and access → Service accounts → Add service account** → **Add service account token**. Chọn role **Admin** nếu muốn script tự tạo datasource; role **Editor** chỉ đủ khi dùng datasource có sẵn.
 
 `install.sh` làm 6 bước và **hỏi lần lượt**: thông tin InfluxDB trước, sau đó tới Grafana, cuối cùng là tên dashboard. Mục nào có giá trị sẵn thì hiện trong `[ ]`, bấm Enter để giữ. Token được nhập ẩn, không hiện ra màn hình.
@@ -189,7 +191,7 @@ Chuẩn bị trước 2 token:
 | Bước | Việc | Hỏi |
 |---|---|---|
 | 1 | Kiểm tra root, Proxmox; cài `ethtool`, `python3`, `curl` nếu thiếu | |
-| 2 | **InfluxDB**: kiểm tra kết nối, token, org và bucket. Nếu khác Metric Server của Proxmox thì cập nhật (`pvesh set`); chưa có thì tạo mới (`pvesh create`) | URL, Organization, Bucket, Token (mặc định lấy từ Metric Server) |
+| 2 | **InfluxDB**: kiểm tra kết nối, token, org và bucket. Token admin thì tự tạo bucket + token riêng của bucket. Nếu khác Metric Server của Proxmox thì cập nhật (`pvesh set`); chưa có thì tạo mới (`pvesh create`) | URL, Organization, Bucket, Token (mặc định lấy từ Metric Server) |
 | 3 | Lấy IP các node đang online (`pvesh get /cluster/status`), ghi vào `deploy/nodes.txt` | Xác nhận danh sách node |
 | 4 | Cài module lên từng node | |
 | 5 | Kiểm tra từng node (lệnh `check`) | |
@@ -208,6 +210,30 @@ Ví dụ phần hỏi đáp:
   Token InfluxDB [Enter = giu gia tri hien tai]:
   [OK] InfluxDB http://10.0.0.5:8086, org myorg, bucket proxmox-demo
   [OK] Metric Server 'influxdb' cua Proxmox da dung thong tin tren
+```
+
+Ví dụ nhập token admin cho cluster mới (bucket chưa có):
+
+```
+== 2/6 Thong tin InfluxDB
+  URL InfluxDB (vd http://10.0.0.5:8086): http://10.0.0.5:8086
+  Organization (de trong = tu lay neu token admin chi co 1 org):
+  Bucket (cung la ten token) [proxmox-cluster-vm-pve01]:
+  Token InfluxDB:
+  Token co quyen admin tren org 'myorg' -> tu chuan bi bucket va token
+  Bucket 'proxmox-cluster-vm-pve01' chua co. Tao moi? [Y/n]
+  Thoi gian luu du lieu (so ngay, 0 = vo han) [0]: 90
+  [OK] Da tao bucket 'proxmox-cluster-vm-pve01' (luu 90 ngay)
+  Tao/dung token rieng (doc+ghi chi bucket 'proxmox-cluster-vm-pve01') thay cho token admin? [Y/n]
+  [OK] Da tao token 'proxmox-cluster-vm-pve01' (doc+ghi bucket proxmox-cluster-vm-pve01)
+  [OK] InfluxDB http://10.0.0.5:8086, org myorg, bucket proxmox-cluster-vm-pve01
+  Proxmox chua co Metric Server InfluxDB.
+  Tao Metric Server 'influxdb' tro toi http://10.0.0.5:8086, bucket proxmox-cluster-vm-pve01? [Y/n]
+  [OK] Da tao Metric Server 'influxdb'
+...
+```
+
+```
 ...
 == 2. Grafana
   URL Grafana (vd https://10.0.0.5:3000): https://10.0.0.5:3000
@@ -240,6 +266,12 @@ Chạy không hỏi (`-y`), đặt trước các biến:
 export INFLUX_URL=http://<IP-InfluxDB>:8086 INFLUX_ORG=<org> INFLUX_BUCKET=<bucket> INFLUX_TOKEN='...'
 export GRAFANA_URL=https://<IP-Grafana>:3000 GRAFANA_TOKEN='glsa_xxx' DASH_TITLE='Proxmox Cluster HCM'
 bash /root/nic-monitor/install.sh -y
+```
+
+Với token admin, `INFLUX_ORG` có thể bỏ; bucket chưa có sẽ được tạo với số ngày lưu `INFLUX_RETENTION_DAYS` (mặc định `0` = vô hạn), ví dụ:
+
+```bash
+export INFLUX_URL=http://<IP-InfluxDB>:8086 INFLUX_TOKEN='<token-admin>' INFLUX_RETENTION_DAYS=90   # bucket/token: proxmox-cluster-vm-<ten host>
 ```
 
 ### 6.3. Cài từng bước (thủ công)
